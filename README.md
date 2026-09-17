@@ -97,10 +97,10 @@ MySQL 8.0 (Students · Faculty · Subjects · Attendance)
 
 ## Documentation
 
-| Document | Contents | Link |
-|---|---|---|
-| **SRS v1.0** | 20 functional, 7 non-functional, 5 security requirements + use cases + RTM | [`SRS/Team3_SRS.pdf`](./SRS/Team3_SRS.pdf) |
-| **Test Plan v1.0** | Strategy, environment, schedule, traceability | [`Test-Plan/SAMS_Test_Plan_Team3.pdf`](./Test-Plan/SAMS_Test_Plan_Team3.pdf) |
+| Document | Contents | 
+|---|---|
+| **SRS v1.0** | 20 functional, 7 non-functional, 5 security requirements + use cases + RTM | 
+| **Test Plan v1.0** | Strategy, environment, schedule, traceability | 
 
 Covers 7 use cases: Mark Attendance, Select Class/Subject, View Attendance %, Manage User Access, Log Admin Action, Generate Reports, View History.
 
