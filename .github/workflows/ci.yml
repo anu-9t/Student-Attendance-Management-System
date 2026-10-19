@@ -5,9 +5,15 @@ on:
   push:
     branches: [main]
 
+# A newer push to the same branch cancels the run that is still going.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       mysql:
         image: mysql:8.0
@@ -38,11 +44,22 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev pkg-config
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
+      - name: Django system check
+        run: python manage.py check
+      - name: Every model change has a migration
+        run: python manage.py makemigrations --check --dry-run
       - name: Unit tests with branch coverage
         run: |
           coverage run -m pytest
           coverage report
           coverage xml
+      - name: Keep the coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          if-no-files-found: ignore
       - name: Bandit security scan
         run: bandit -r . -x ./tests,./.venv,./venv -ll
       - name: SonarCloud scan
@@ -54,6 +71,7 @@ jobs:
   docker:
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       packages: write
