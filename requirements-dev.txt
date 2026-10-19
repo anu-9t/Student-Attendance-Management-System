@@ -1,0 +1,5 @@
+-r requirements.txt
+pytest>=8.0
+pytest-django>=4.8
+coverage>=7.4
+bandit>=1.7

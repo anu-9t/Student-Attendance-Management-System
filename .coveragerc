@@ -1,0 +1,10 @@
+[run]
+branch = True
+source = .
+omit =
+    */migrations/*
+    manage.py
+    sams/wsgi.py
+    tests/*
+    venv/*
+    .venv/*
