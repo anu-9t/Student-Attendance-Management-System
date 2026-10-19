@@ -23,8 +23,8 @@ jobs:
     env:
       DB_HOST: 127.0.0.1
       DB_NAME: sams
-      DB_USER: sams
-      DB_PASSWORD: sams
+      DB_USER: root
+      DB_PASSWORD: root
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v4
