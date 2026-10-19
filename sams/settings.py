@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "notification",
     "reports",
     "audit",
+    "dashboards",
 ]
 
 MIDDLEWARE = [
@@ -80,6 +81,8 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/login/"
 
 # Lockout: 5 failed logins lock a username + IP for 15 minutes, answered with HTTP 429 (SAD 3.6, 4.3.1).
 AXES_FAILURE_LIMIT = 5
