@@ -7,7 +7,10 @@ docker compose up --build
 docker compose exec web python manage.py createsuperuser   # or use seed_data
 docker compose exec web python manage.py seed_data
 ```
-Open http://localhost/ (health check: http://localhost/health/, admin: /admin/).
+Open https://localhost/ (the development certificate is self-signed; accept it in the browser).
+The health check is https://localhost/health/ and the admin site is https://localhost/admin/.
+HTTP requests on port 80 redirect to HTTPS. For a real deployment, mount trusted TLS files
+at `/etc/nginx/certs/server.crt` and `/etc/nginx/certs/server.key` in the Nginx container.
 
 ## Quick local run without Docker (SQLite, for fast tests only)
 ```
