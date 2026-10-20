@@ -21,6 +21,7 @@ class Attendance(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        ordering = ["-date", "time_slot__start_time"]
         constraints = [
             models.UniqueConstraint(fields=["student", "subject", "date", "time_slot"], name="uniq_attendance_slot")
         ]

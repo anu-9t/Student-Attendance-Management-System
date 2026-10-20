@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -7,6 +8,9 @@ class Subject(models.Model):
     code = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=100)
     semester = models.PositiveSmallIntegerField()
+
+    class Meta:
+        ordering = ["code"]
 
     def __str__(self):
         return f"{self.code} {self.name}"
@@ -21,6 +25,16 @@ class TimeSlot(models.Model):
 
     class Meta:
         ordering = ["start_time"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(end_time__gt=models.F("start_time")),
+                name="timeslot_ends_after_it_starts",
+            )
+        ]
+
+    def clean(self):
+        if self.start_time and self.end_time and self.end_time <= self.start_time:
+            raise ValidationError("A time slot must end after it starts.")
 
     def __str__(self):
         return f"{self.label} ({self.start_time:%H:%M}-{self.end_time:%H:%M})"

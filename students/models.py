@@ -7,6 +7,9 @@ class ClassGroup(models.Model):
     department = models.CharField(max_length=60)
     semester = models.PositiveSmallIntegerField()
 
+    class Meta:
+        ordering = ["name"]
+
     def __str__(self):
         return self.name
 
@@ -18,6 +21,9 @@ class Student(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField(blank=True)
     is_active = models.BooleanField(default=True)  # deactivate, never delete (ADR-003)
+
+    class Meta:
+        ordering = ["srn"]
 
     def __str__(self):
         return f"{self.srn} {self.name}"
