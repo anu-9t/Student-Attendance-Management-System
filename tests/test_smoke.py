@@ -25,9 +25,21 @@ def test_seed_is_repeatable():
     call_command("seed_data")
     call_command("seed_data")
     assert TimeSlot.objects.count() == 6
-    assert Student.objects.count() == 3
+    assert Student.objects.count() == 8
+    assert Faculty.objects.count() == 2
+    assert Subject.objects.count() == 3
     assert SystemSetting.objects.get(key="attendance_threshold").value == "75"
     assert User.objects.get(username="admin").check_password("Sams@12345")
+    assert User.objects.get(username="student8").check_password("Sams@12345")
+
+
+def test_seed_assigns_subjects_to_faculty():
+    from subjects.models import SubjectAssignment
+
+    call_command("seed_data")
+    assert SubjectAssignment.objects.count() == 4
+    faculty_one = Faculty.objects.get(employee_id="F001")
+    assert set(faculty_one.assignments.values_list("class_group__name", flat=True)) == {"CSE-5A", "CSE-5B"}
 
 
 def test_attendance_unique_per_student_subject_date_slot():
