@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard | SAMS{% endblock %}
+
+{% block content %}
+
+<h2 class="page-title mb-4">Student Dashboard</h2>
+
+<p class="text-muted">
+    Welcome! View your attendance information below.
+</p>
+
+<div class="row g-4 mt-3">
+
+    <div class="col-md-6">
+        <div class="dashboard-card">
+            <h5>📊 Attendance Percentage</h5>
+            <p>View your subject-wise attendance percentage.</p>
+            <a href="#" class="btn btn-primary disabled"
+               aria-disabled="true">Coming Soon</a>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="dashboard-card">
+            <h5>📅 Attendance History</h5>
+            <p>View your previous attendance records.</p>
+            <a href="#" class="btn btn-primary disabled"
+               aria-disabled="true">Coming Soon</a>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
