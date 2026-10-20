@@ -10,6 +10,10 @@
     Welcome! View your attendance information below.
 </p>
 
+{% if student %}
+<p>{{ student.name }} &middot; {{ student.srn }} &middot; {{ student.class_group.name }}</p>
+{% endif %}
+
 <div class="row g-4 mt-3">
 
     <div class="col-md-6">

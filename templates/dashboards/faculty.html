@@ -10,6 +10,17 @@
     Manage attendance for your assigned classes and subjects.
 </p>
 
+<h5 class="mt-4">Your subjects</h5>
+{% if assignments %}
+<ul class="list-group mb-3">
+    {% for a in assignments %}
+    <li class="list-group-item">{{ a.subject.code }} {{ a.subject.name }} &middot; {{ a.class_group.name }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-muted">No subjects have been assigned to you yet.</p>
+{% endif %}
+
 <div class="row g-4 mt-3">
 
     <div class="col-md-6">

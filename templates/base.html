@@ -54,6 +54,16 @@
             <span class="navbar-text text-white">
                 Student Attendance Management System
             </span>
+
+            {% if user.is_authenticated %}
+            <div class="d-flex align-items-center gap-3">
+                <span class="navbar-text text-white small">{{ user.username }} ({{ user.get_role_display }})</span>
+                <form method="post" action="/logout/" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-light btn-sm">Log out</button>
+                </form>
+            </div>
+            {% endif %}
         </div>
     </nav>
 
