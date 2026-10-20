@@ -16,26 +16,76 @@ PASSWORD = os.environ.get("SEED_PASSWORD", "Sams@12345")
 SLOTS = [("Period 1", 9, 10), ("Period 2", 10, 11), ("Period 3", 11, 12),
          ("Period 4", 13, 14), ("Period 5", 14, 15), ("Period 6", 15, 16)]
 
+CLASSES = [("CSE-5A", "CSE", 5), ("CSE-5B", "CSE", 5)]
+
+SUBJECTS = [
+    ("UE24CS341A", "Software Engineering", 5),
+    ("UE24CS342A", "Computer Networks", 5),
+    ("UE24CS343A", "Database Management Systems", 5),
+]
+
+# employee id, username, name
+FACULTY = [("F001", "faculty1", "Sample Faculty One"), ("F002", "faculty2", "Sample Faculty Two")]
+
+# Which faculty member teaches which subject to which class
+ASSIGNMENTS = [
+    ("F001", "UE24CS341A", "CSE-5A"),
+    ("F001", "UE24CS341A", "CSE-5B"),
+    ("F002", "UE24CS342A", "CSE-5A"),
+    ("F002", "UE24CS343A", "CSE-5B"),
+]
+
+STUDENTS_PER_CLASS = 4
+
+
+def ensure_user(username, role, **extra):
+    user, _ = User.objects.get_or_create(username=username, defaults={"role": role, **extra})
+    if not user.password or not user.has_usable_password():
+        user.set_password(PASSWORD)
+        user.save()
+    return user
+
 
 class Command(BaseCommand):
-    help = "Create sample users, class, subjects, time slots and the default threshold."
+    help = "Create sample users, classes, subjects, time slots, assignments and the default threshold."
 
     def handle(self, *args, **options):
-        admin, _ = User.objects.get_or_create(username="admin", defaults={"role": User.Role.ADMIN, "is_staff": True, "is_superuser": True})
-        fac_user, _ = User.objects.get_or_create(username="faculty1", defaults={"role": User.Role.FACULTY})
-        stu_users = [User.objects.get_or_create(username=f"student{i}", defaults={"role": User.Role.STUDENT})[0] for i in (1, 2, 3)]
-        for u in [admin, fac_user, *stu_users]:
-            if not u.password or not u.has_usable_password():
-                u.set_password(PASSWORD)
-                u.save()
+        ensure_user("admin", User.Role.ADMIN, is_staff=True, is_superuser=True)
 
-        cls, _ = ClassGroup.objects.get_or_create(name="CSE-3A", defaults={"department": "CSE", "semester": 5})
-        fac, _ = Faculty.objects.get_or_create(employee_id="F001", defaults={"user": fac_user, "name": "Sample Faculty", "department": "CSE"})
-        subj, _ = Subject.objects.get_or_create(code="UE24CS341A", defaults={"name": "Software Engineering", "semester": 5})
-        SubjectAssignment.objects.get_or_create(faculty=fac, subject=subj, class_group=cls)
+        classes = {}
+        for name, dept, sem in CLASSES:
+            classes[name], _ = ClassGroup.objects.get_or_create(name=name, defaults={"department": dept, "semester": sem})
 
-        for i, u in enumerate(stu_users, start=1):
-            Student.objects.get_or_create(srn=f"PES2UG24CS09{i}", defaults={"user": u, "class_group": cls, "name": f"Sample Student {i}", "email": f"student{i}@example.com"})
+        subjects = {}
+        for code, name, sem in SUBJECTS:
+            subjects[code], _ = Subject.objects.get_or_create(code=code, defaults={"name": name, "semester": sem})
+
+        faculty = {}
+        for emp_id, username, name in FACULTY:
+            user = ensure_user(username, User.Role.FACULTY)
+            faculty[emp_id], _ = Faculty.objects.get_or_create(
+                employee_id=emp_id, defaults={"user": user, "name": name, "department": "CSE"}
+            )
+
+        for emp_id, code, class_name in ASSIGNMENTS:
+            SubjectAssignment.objects.get_or_create(
+                faculty=faculty[emp_id], subject=subjects[code], class_group=classes[class_name]
+            )
+
+        number = 1
+        for class_name in classes:
+            for _ in range(STUDENTS_PER_CLASS):
+                user = ensure_user(f"student{number}", User.Role.STUDENT)
+                Student.objects.get_or_create(
+                    srn=f"PES2UG24CS{90 + number:03d}",
+                    defaults={
+                        "user": user,
+                        "class_group": classes[class_name],
+                        "name": f"Sample Student {number}",
+                        "email": f"student{number}@example.com",
+                    },
+                )
+                number += 1
 
         for label, start, end in SLOTS:
             TimeSlot.objects.get_or_create(label=label, defaults={"start_time": dt.time(start), "end_time": dt.time(end)})

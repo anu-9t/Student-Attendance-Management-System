@@ -11,6 +11,7 @@ class Faculty(models.Model):
 
     class Meta:
         verbose_name_plural = "faculty"
+        ordering = ["employee_id"]
 
     def __str__(self):
         return f"{self.employee_id} {self.name}"
