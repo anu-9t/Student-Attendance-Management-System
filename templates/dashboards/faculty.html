@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Faculty Dashboard | SAMS{% endblock %}
+
+{% block content %}
+
+<h2 class="page-title mb-4">Faculty Dashboard</h2>
+
+<p class="text-muted">
+    Manage attendance for your assigned classes and subjects.
+</p>
+
+<h5 class="mt-4">Your subjects</h5>
+{% if assignments %}
+<ul class="list-group mb-3">
+    {% for a in assignments %}
+    <li class="list-group-item">{{ a.subject.code }} {{ a.subject.name }} &middot; {{ a.class_group.name }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-muted">No subjects have been assigned to you yet.</p>
+{% endif %}
+
+<div class="row g-4 mt-3">
+
+    <div class="col-md-6">
+        <div class="dashboard-card">
+            <h5>✅ Mark Attendance</h5>
+            <p>Record attendance for assigned subjects and classes.</p>
+            <a href="#" class="btn btn-primary disabled"
+               aria-disabled="true">Coming Soon</a>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="dashboard-card">
+            <h5>📋 Attendance Reports</h5>
+            <p>View attendance reports for your assigned subjects.</p>
+            <a href="#" class="btn btn-primary disabled"
+               aria-disabled="true">Coming Soon</a>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

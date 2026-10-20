@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | SAMS{% endblock %}
+
+{% block content %}
+
+<h2 class="page-title mb-4">Administrator Dashboard</h2>
+
+<p class="text-muted">
+    Welcome to the Student Attendance Management System.
+</p>
+
+<p>
+    Active students: <strong>{{ student_count }}</strong> &middot;
+    Faculty: <strong>{{ faculty_count }}</strong> &middot;
+    Subjects: <strong>{{ subject_count }}</strong> &middot;
+    Classes: <strong>{{ class_count }}</strong>
+</p>
+
+<div class="row g-4 mt-3">
+
+    <div class="col-md-4">
+        <div class="dashboard-card">
+            <h5>🎓 Student Management</h5>
+            <p>Add, update, search and deactivate students.</p>
+            <a href="#" class="btn btn-primary disabled"
+               aria-disabled="true">Coming Soon</a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="dashboard-card">
+            <h5>👨‍🏫 Faculty Management</h5>
+            <p>Manage faculty records and information.</p>
+            <a href="#" class="btn btn-primary disabled"
+               aria-disabled="true">Coming Soon</a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="dashboard-card">
+            <h5>📊 Attendance Reports</h5>
+            <p>View attendance reports and summaries.</p>
+            <a href="#" class="btn btn-primary disabled"
+               aria-disabled="true">Coming Soon</a>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
