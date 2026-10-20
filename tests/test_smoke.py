@@ -4,6 +4,7 @@ import pytest
 from django.core.management import call_command
 from django.db import IntegrityError, transaction
 
+from accounts.models import User
 from attendance.models import Attendance
 from audit.models import AuditLog
 from faculty.models import Faculty
@@ -26,6 +27,7 @@ def test_seed_is_repeatable():
     assert TimeSlot.objects.count() == 6
     assert Student.objects.count() == 3
     assert SystemSetting.objects.get(key="attendance_threshold").value == "75"
+    assert User.objects.get(username="admin").check_password("Sams@12345")
 
 
 def test_attendance_unique_per_student_subject_date_slot():

@@ -33,12 +33,16 @@ services:
     restart: unless-stopped
 
   nginx:
-    image: nginx:1.27
+    build: ./nginx
+    environment:
+      TLS_DOMAIN: ${TLS_DOMAIN:-localhost}
+      TLS_DAYS: ${TLS_DAYS:-365}
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - static:/app/staticfiles:ro
+      - nginx_certs:/etc/nginx/certs
     depends_on:
       - web
     restart: unless-stopped
@@ -46,3 +50,4 @@ services:
 volumes:
   dbdata:
   static:
+  nginx_certs:
