@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Time slots | SAMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="page-title m-0">Time slots</h2>
+    <a href="{% url 'subjects:timeslot_add' %}" class="btn btn-primary">Add a time slot</a>
+</div>
+<p class="text-muted">Attendance is marked per one-hour slot. A two-hour lab uses two slots and counts as two classes.</p>
+
+{% for message in messages %}
+<div class="alert alert-success py-2">{{ message }}</div>
+{% endfor %}
+
+<table class="table table-hover bg-white">
+    <thead><tr><th>Label</th><th>Starts</th><th>Ends</th><th></th></tr></thead>
+    <tbody>
+    {% for t in slots %}
+        <tr>
+            <td>{{ t.label }}</td><td>{{ t.start_time|time:"H:i" }}</td><td>{{ t.end_time|time:"H:i" }}</td>
+            <td><a href="{% url 'subjects:timeslot_edit' t.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a></td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="4" class="text-muted">No time slots yet.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
