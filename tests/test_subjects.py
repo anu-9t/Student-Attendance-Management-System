@@ -41,3 +41,27 @@ def test_faculty_cannot_manage_subjects(client):
     call_command("seed_data")
     client.force_login(User.objects.get(username="faculty1"))
     assert client.get("/subjects/").status_code == 403
+
+
+# Time slots (ADR-004)
+
+
+def test_admin_sees_the_six_periods(admin_client):
+    response = admin_client.get("/subjects/time-slots/")
+    assert response.status_code == 200
+    assert b"Period 1" in response.content and b"Period 6" in response.content
+
+
+def test_admin_adds_a_time_slot(admin_client):
+    from subjects.models import TimeSlot
+
+    admin_client.post("/subjects/time-slots/add/", {"label": "Period 7", "start_time": "16:00", "end_time": "17:00"})
+    assert TimeSlot.objects.filter(label="Period 7").exists()
+
+
+def test_a_slot_ending_before_it_starts_is_rejected(admin_client):
+    from subjects.models import TimeSlot
+
+    response = admin_client.post("/subjects/time-slots/add/", {"label": "Bad", "start_time": "11:00", "end_time": "10:00"})
+    assert response.status_code == 200
+    assert not TimeSlot.objects.filter(label="Bad").exists()
