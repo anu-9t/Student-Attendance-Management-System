@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import SubjectForm, TimeSlotForm
-from .models import Subject, TimeSlot
+from .forms import AssignmentForm, SubjectForm, TimeSlotForm
+from .models import Subject, SubjectAssignment, TimeSlot
 
 
 def _admin_only(request):
@@ -70,3 +70,28 @@ def timeslot_edit(request, pk):
         messages.success(request, f"Saved {slot.label}.")
         return redirect("subjects:timeslots")
     return render(request, "subjects/form.html", {"form": form, "title": f"Edit {slot.label}", "back": "subjects:timeslots"})
+
+
+@login_required
+def assignment_list(request):
+    """SAM-F-009: which faculty member teaches which subject to which class."""
+    _admin_only(request)
+    form = AssignmentForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        a = form.save()
+        messages.success(request, f"{a.faculty.name} now teaches {a.subject.code} to {a.class_group.name}.")
+        return redirect("subjects:assignments")
+    assignments = SubjectAssignment.objects.select_related("faculty", "subject", "class_group").order_by(
+        "faculty__employee_id", "subject__code", "class_group__name"
+    )
+    return render(request, "subjects/assignments.html", {"assignments": assignments, "form": form})
+
+
+@login_required
+def assignment_remove(request, pk):
+    _admin_only(request)
+    assignment = get_object_or_404(SubjectAssignment, pk=pk)
+    if request.method == "POST":
+        assignment.delete()
+        messages.success(request, "Assignment removed.")
+    return redirect("subjects:assignments")
