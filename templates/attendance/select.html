@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Select a class and subject | SAMS{% endblock %}
+
+{% block content %}
+<h2 class="page-title mb-4">Select a class and subject</h2>
+
+{% if selected_assignment %}
+    <div class="alert alert-info" role="status">
+        Selected: {{ selected_assignment.class_group.name }} &mdash;
+        {{ selected_assignment.subject.code }} {{ selected_assignment.subject.name }}
+    </div>
+{% endif %}
+
+{% if assignments %}
+    <div class="list-group">
+        {% for assignment in assignments %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                    <strong>{{ assignment.class_group.name }}</strong>
+                    &middot; {{ assignment.subject.code }} {{ assignment.subject.name }}
+                </span>
+                <form method="get" action="{% url 'attendance:select' %}" class="m-0">
+                    <input type="hidden" name="class_id" value="{{ assignment.class_group_id }}">
+                    <input type="hidden" name="subject_id" value="{{ assignment.subject_id }}">
+                    <button type="submit" class="btn btn-sm btn-primary">Select</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="text-muted">No class and subject assignments are available.</p>
+{% endif %}
+{% endblock %}
