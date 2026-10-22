@@ -8,13 +8,21 @@
     <a href="{% url 'students:add' %}" class="btn btn-primary">Add a student</a>
 </div>
 
+<form method="get" class="d-flex gap-2 mb-3" style="max-width: 420px;">
+    <input type="search" name="q" value="{{ query }}" class="form-control" placeholder="Search by SRN or name">
+    <button type="submit" class="btn btn-outline-primary">Search</button>
+</form>
+<p class="small">
+    {% if show_inactive %}<a href="?">Show active students only</a>{% else %}<a href="?show=all">Also show deactivated students</a>{% endif %}
+</p>
+
 {% for message in messages %}
 <div class="alert alert-success py-2">{{ message }}</div>
 {% endfor %}
 
 <table class="table table-hover bg-white">
     <thead>
-        <tr><th>SRN</th><th>Name</th><th>Class</th><th>Email</th></tr>
+        <tr><th>SRN</th><th>Name</th><th>Class</th><th>Email</th><th></th></tr>
     </thead>
     <tbody>
     {% for s in students %}
@@ -23,9 +31,21 @@
             <td>{{ s.name }}</td>
             <td>{{ s.class_group.name }}</td>
             <td>{{ s.email }}</td>
+            <td class="text-nowrap">
+                {% if s.is_active %}
+                <a href="{% url 'students:edit' s.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                <form method="post" action="{% url 'students:deactivate' s.pk %}" class="d-inline"
+                      onsubmit="return confirm('Deactivate {{ s.name }}? They will no longer be able to log in.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Deactivate</button>
+                </form>
+                {% else %}
+                <span class="badge bg-secondary">Deactivated</span>
+                {% endif %}
+            </td>
         </tr>
     {% empty %}
-        <tr><td colspan="4" class="text-muted">No students yet.</td></tr>
+        <tr><td colspan="5" class="text-muted">No students found.</td></tr>
     {% endfor %}
     </tbody>
 </table>
