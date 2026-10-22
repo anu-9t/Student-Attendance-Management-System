@@ -51,3 +51,26 @@ def test_faculty_cannot_add_students(client):
     call_command("seed_data")
     client.force_login(User.objects.get(username="faculty1"))
     assert client.get("/students/add/").status_code == 403
+
+
+# SAM-F-005 and SAM-F-006: update and search
+
+
+def test_admin_updates_a_student(admin_client):
+    student = Student.objects.get(srn="PES2UG24CS091")
+    response = admin_client.post(
+        f"/students/{student.pk}/edit/",
+        {"srn": student.srn, "name": "Renamed Student", "email": "renamed@example.com",
+         "class_group": student.class_group_id},
+    )
+    assert response.status_code == 302
+    student.refresh_from_db()
+    assert student.name == "Renamed Student"
+
+
+def test_search_by_srn_and_by_name(admin_client):
+    response = admin_client.get("/students/", {"q": "cs092"})
+    assert b"PES2UG24CS092" in response.content
+    assert b"PES2UG24CS093" not in response.content
+    response = admin_client.get("/students/", {"q": "Student 3"})
+    assert b"PES2UG24CS093" in response.content
