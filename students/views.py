@@ -17,11 +17,16 @@ def _admin_only(request):
 def student_list(request):
     _admin_only(request)
     students = Student.objects.select_related("class_group")
+    show_inactive = request.GET.get("show") == "all"
+    if not show_inactive:
+        students = students.filter(is_active=True)
     query = request.GET.get("q", "").strip()
     if query:
         # SAM-F-006: search by SRN or name
         students = students.filter(Q(srn__icontains=query) | Q(name__icontains=query))
-    return render(request, "students/list.html", {"students": students, "query": query})
+    return render(
+        request, "students/list.html", {"students": students, "query": query, "show_inactive": show_inactive}
+    )
 
 
 @login_required
@@ -47,3 +52,18 @@ def student_edit(request, pk):
         messages.success(request, f"Saved changes to {student.name}.")
         return redirect("students:list")
     return render(request, "students/form.html", {"form": form, "title": f"Edit {student.name}"})
+
+
+@login_required
+def student_deactivate(request, pk):
+    """Deactivate instead of delete (ADR-003): history stays, the login stops working."""
+    _admin_only(request)
+    student = get_object_or_404(Student, pk=pk)
+    if request.method == "POST":
+        student.is_active = False
+        student.save(update_fields=["is_active"])
+        if student.user:
+            student.user.is_active = False
+            student.user.save(update_fields=["is_active"])
+        messages.success(request, f"Deactivated {student.name}. Their attendance history is kept.")
+    return redirect("students:list")

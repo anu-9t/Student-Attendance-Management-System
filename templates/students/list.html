@@ -12,6 +12,9 @@
     <input type="search" name="q" value="{{ query }}" class="form-control" placeholder="Search by SRN or name">
     <button type="submit" class="btn btn-outline-primary">Search</button>
 </form>
+<p class="small">
+    {% if show_inactive %}<a href="?">Show active students only</a>{% else %}<a href="?show=all">Also show deactivated students</a>{% endif %}
+</p>
 
 {% for message in messages %}
 <div class="alert alert-success py-2">{{ message }}</div>
@@ -28,7 +31,18 @@
             <td>{{ s.name }}</td>
             <td>{{ s.class_group.name }}</td>
             <td>{{ s.email }}</td>
-            <td><a href="{% url 'students:edit' s.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a></td>
+            <td class="text-nowrap">
+                {% if s.is_active %}
+                <a href="{% url 'students:edit' s.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                <form method="post" action="{% url 'students:deactivate' s.pk %}" class="d-inline"
+                      onsubmit="return confirm('Deactivate {{ s.name }}? They will no longer be able to log in.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Deactivate</button>
+                </form>
+                {% else %}
+                <span class="badge bg-secondary">Deactivated</span>
+                {% endif %}
+            </td>
         </tr>
     {% empty %}
         <tr><td colspan="5" class="text-muted">No students found.</td></tr>

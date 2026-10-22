@@ -74,3 +74,27 @@ def test_search_by_srn_and_by_name(admin_client):
     assert b"PES2UG24CS093" not in response.content
     response = admin_client.get("/students/", {"q": "Student 3"})
     assert b"PES2UG24CS093" in response.content
+
+
+# Deactivate instead of delete (ADR-003)
+
+
+def test_deactivated_student_is_hidden_and_cannot_log_in(admin_client):
+    student = Student.objects.get(srn="PES2UG24CS091")
+    response = admin_client.post(f"/students/{student.pk}/deactivate/")
+    assert response.status_code == 302
+    student.refresh_from_db()
+    assert student.is_active is False
+    assert Student.objects.filter(pk=student.pk).exists()
+    assert b"PES2UG24CS091" not in admin_client.get("/students/").content
+    assert b"PES2UG24CS091" in admin_client.get("/students/", {"show": "all"}).content
+
+    student.user.refresh_from_db()
+    assert student.user.is_active is False  # Django refuses logins for inactive users
+
+
+def test_deactivate_needs_a_post(admin_client):
+    student = Student.objects.get(srn="PES2UG24CS092")
+    admin_client.get(f"/students/{student.pk}/deactivate/")
+    student.refresh_from_db()
+    assert student.is_active is True
