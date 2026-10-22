@@ -11,4 +11,6 @@ urlpatterns = [
     path("time-slots/", views.timeslot_list, name="timeslots"),
     path("time-slots/add/", views.timeslot_add, name="timeslot_add"),
     path("time-slots/<int:pk>/edit/", views.timeslot_edit, name="timeslot_edit"),
+    path("assignments/", views.assignment_list, name="assignments"),
+    path("assignments/<int:pk>/remove/", views.assignment_remove, name="assignment_remove"),
 ]

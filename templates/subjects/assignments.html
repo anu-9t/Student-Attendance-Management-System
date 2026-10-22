@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Subject assignments | SAMS{% endblock %}
+
+{% block content %}
+<h2 class="page-title mb-3">Who teaches what</h2>
+
+{% for message in messages %}
+<div class="alert alert-success py-2">{{ message }}</div>
+{% endfor %}
+
+<form method="post" class="dashboard-card mb-4">
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}<div class="alert alert-danger py-2">{{ error }}</div>{% endfor %}
+    <div class="row g-2 align-items-end">
+        {% for field in form %}
+        <div class="col-md-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+        </div>
+        {% endfor %}
+        <div class="col-md-3"><button type="submit" class="btn btn-primary w-100">Assign</button></div>
+    </div>
+</form>
+
+<table class="table table-hover bg-white">
+    <thead><tr><th>Faculty</th><th>Subject</th><th>Class</th><th></th></tr></thead>
+    <tbody>
+    {% for a in assignments %}
+        <tr>
+            <td>{{ a.faculty.name }} ({{ a.faculty.employee_id }})</td>
+            <td>{{ a.subject.code }} {{ a.subject.name }}</td>
+            <td>{{ a.class_group.name }}</td>
+            <td>
+                <form method="post" action="{% url 'subjects:assignment_remove' a.pk %}"
+                      onsubmit="return confirm('Remove this assignment?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                </form>
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="4" class="text-muted">Nothing assigned yet.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

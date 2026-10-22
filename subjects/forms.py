@@ -1,6 +1,8 @@
 from django import forms
 
-from .models import Subject, TimeSlot
+from faculty.models import Faculty
+
+from .models import Subject, SubjectAssignment, TimeSlot
 
 
 class SubjectForm(forms.ModelForm):
@@ -31,3 +33,16 @@ class TimeSlotForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs["class"] = "form-control"
+
+
+class AssignmentForm(forms.ModelForm):
+    class Meta:
+        model = SubjectAssignment
+        fields = ["faculty", "subject", "class_group"]
+        labels = {"class_group": "Class"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["faculty"].queryset = Faculty.objects.filter(is_active=True)
+        for field in self.fields.values():
+            field.widget.attrs["class"] = "form-select"

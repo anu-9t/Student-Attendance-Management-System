@@ -65,3 +65,39 @@ def test_a_slot_ending_before_it_starts_is_rejected(admin_client):
     response = admin_client.post("/subjects/time-slots/add/", {"label": "Bad", "start_time": "11:00", "end_time": "10:00"})
     assert response.status_code == 200
     assert not TimeSlot.objects.filter(label="Bad").exists()
+
+
+# SAM-F-009: assign subjects to faculty
+
+
+def test_admin_assigns_a_subject_to_a_faculty_member(admin_client):
+    from faculty.models import Faculty
+    from students.models import ClassGroup
+    from subjects.models import SubjectAssignment
+
+    faculty = Faculty.objects.get(employee_id="F002")
+    subject = Subject.objects.get(code="UE24CS341A")
+    group = ClassGroup.objects.get(name="CSE-5B")
+    response = admin_client.post("/subjects/assignments/", {"faculty": faculty.pk, "subject": subject.pk, "class_group": group.pk})
+    assert response.status_code == 302
+    assert SubjectAssignment.objects.filter(faculty=faculty, subject=subject, class_group=group).exists()
+
+
+def test_the_same_assignment_cannot_be_added_twice(admin_client):
+    from subjects.models import SubjectAssignment
+
+    existing = SubjectAssignment.objects.first()
+    response = admin_client.post(
+        "/subjects/assignments/",
+        {"faculty": existing.faculty_id, "subject": existing.subject_id, "class_group": existing.class_group_id},
+    )
+    assert response.status_code == 200
+    assert SubjectAssignment.objects.count() == 4
+
+
+def test_admin_removes_an_assignment(admin_client):
+    from subjects.models import SubjectAssignment
+
+    existing = SubjectAssignment.objects.first()
+    admin_client.post(f"/subjects/assignments/{existing.pk}/remove/")
+    assert SubjectAssignment.objects.count() == 3
