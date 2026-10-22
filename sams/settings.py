@@ -98,6 +98,8 @@ AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = timedelta(minutes=15)
 AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 AXES_HTTP_RESPONSE_CODE = 429
+AXES_LOCKOUT_TEMPLATE = "accounts/locked_out.html"
+AXES_RESET_ON_SUCCESS = True
 
 # Django's default PBKDF2 hasher is used for passwords (SAD 3.6).
 AUTH_PASSWORD_VALIDATORS = [
