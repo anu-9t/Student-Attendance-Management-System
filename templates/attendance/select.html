@@ -9,6 +9,8 @@
     <div class="alert alert-info" role="status">
         Selected: {{ selected_assignment.class_group.name }} &mdash;
         {{ selected_assignment.subject.code }} {{ selected_assignment.subject.name }}
+        <a href="{% url 'attendance:mark' selected_assignment.class_group_id selected_assignment.subject_id %}"
+           class="btn btn-sm btn-primary ms-3">Mark attendance</a>
     </div>
 {% endif %}
 
