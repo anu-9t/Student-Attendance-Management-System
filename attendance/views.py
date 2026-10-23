@@ -1,8 +1,10 @@
 import datetime as dt
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError, transaction
 from django.http import HttpResponseForbidden, HttpResponseNotFound
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from accounts.models import User
@@ -79,4 +81,59 @@ def mark(request, class_id, subject_id):
         "chosen_slots": [int(x) for x in request.POST.getlist("slots") if x.isdigit()],
         "errors": [],
     }
+    if request.method == "POST":
+        errors = _save(request, faculty, assignment, students, context)
+        if not errors:
+            return redirect("attendance:mark", class_id=class_id, subject_id=subject_id)
+        context["errors"] = errors
     return render(request, "attendance/mark.html", context)
+
+
+def _save(request, faculty, assignment, students, context):
+    """SAM-F-012 and SAM-F-013: store the sheet in one transaction, refusing duplicates.
+
+    Returns a list of error messages; an empty list means everything was saved.
+    """
+    try:
+        date = dt.date.fromisoformat(request.POST.get("date", ""))
+    except ValueError:
+        return ["Please pick a valid date."]
+    if date > context["today"]:
+        return ["Attendance can't be marked for a future date."]
+
+    slots = list(TimeSlot.objects.filter(pk__in=context["chosen_slots"]))
+    if not slots:
+        return ["Pick at least one time slot."]
+
+    statuses = {}
+    for s in students:
+        value = request.POST.get(f"status_{s.pk}")
+        if value not in Attendance.Status.values:
+            return [f"Mark {s.name} as present or absent."]
+        statuses[s] = value
+
+    already = Attendance.objects.filter(
+        subject=assignment.subject, date=date, time_slot__in=slots, student__in=students
+    ).values_list("time_slot__label", flat=True).distinct()
+    if already:
+        return [
+            f"Attendance for {', '.join(sorted(already))} on {date:%d %b %Y} is already saved. "
+            "Nothing was saved this time; use Modify attendance to change it."
+        ]
+
+    rows = [
+        Attendance(student=s, subject=assignment.subject, date=date, time_slot=slot, status=status, marked_by=faculty)
+        for slot in slots
+        for s, status in statuses.items()
+    ]
+    try:
+        with transaction.atomic():
+            Attendance.objects.bulk_create(rows)
+    except IntegrityError:
+        return ["Someone saved attendance for this class at the same moment. Nothing was saved; please check and try again."]
+
+    messages.success(
+        request,
+        f"Saved attendance for {len(statuses)} students, {len(slots)} slot{'s' if len(slots) > 1 else ''}, on {date:%d %b %Y}.",
+    )
+    return []
