@@ -51,7 +51,7 @@ jobs:
       - name: Unit tests with branch coverage
         run: |
           coverage run -m pytest
-          coverage report
+          coverage report --fail-under=85
           coverage xml
       - name: Keep the coverage report
         if: always()
