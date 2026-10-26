@@ -4,11 +4,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.http import HttpResponseForbidden, HttpResponseNotFound
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from accounts.models import User
-from faculty.models import Faculty
+from accounts.ownership import faculty_assignments, faculty_profile
 from students.models import Student
 from subjects.models import SubjectAssignment, TimeSlot
 
@@ -21,10 +21,9 @@ def select_class(request):
     if request.user.role != User.Role.FACULTY:
         return HttpResponseForbidden("Only faculty members can view assignments.")
 
-    faculty = get_object_or_404(Faculty, user=request.user, is_active=True)
-    faculty_assignments = SubjectAssignment.objects.filter(faculty=faculty).select_related(
-        "class_group", "subject"
-    ).order_by("class_group__name", "subject__code")
+    if faculty_profile(request.user) is None:
+        return HttpResponseNotFound("No active faculty record is linked to your login.")
+    assignments = faculty_assignments(request.user).order_by("class_group__name", "subject__code")
 
     selected_assignment = None
     class_id = request.GET.get("class_id")
@@ -33,7 +32,7 @@ def select_class(request):
         try:
             if class_id is None or subject_id is None:
                 raise ValueError
-            selected_assignment = faculty_assignments.get(
+            selected_assignment = assignments.get(
                 class_group_id=int(class_id), subject_id=int(subject_id)
             )
         except (ValueError, SubjectAssignment.DoesNotExist):
@@ -43,23 +42,18 @@ def select_class(request):
         request,
         "attendance/select.html",
         {
-            "assignments": faculty_assignments,
+            "assignments": assignments,
             "selected_assignment": selected_assignment,
         },
     )
 
 
 def _assignment_for(request, class_id, subject_id):
-    """The faculty member's own assignment for this class and subject, or None."""
-    faculty = Faculty.objects.filter(user=request.user, is_active=True).first()
+    """The faculty member's own assignment for this class and subject, or None (SAM-SEC-004)."""
+    faculty = faculty_profile(request.user)
     if faculty is None:
         return None, None
-    assignment = (
-        SubjectAssignment.objects.filter(faculty=faculty, class_group_id=class_id, subject_id=subject_id)
-        .select_related("class_group", "subject")
-        .first()
-    )
-    return faculty, assignment
+    return faculty, faculty_assignments(request.user).filter(class_group_id=class_id, subject_id=subject_id).first()
 
 
 @login_required
