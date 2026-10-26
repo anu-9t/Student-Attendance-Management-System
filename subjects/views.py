@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 
+from audit.services import log_admin_action
+
 from .forms import AssignmentForm, SubjectForm, TimeSlotForm
 from .models import Subject, SubjectAssignment, TimeSlot
 
@@ -25,6 +27,7 @@ def subject_add(request):
     form = SubjectForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         subject = form.save()
+        log_admin_action(request, "Added a subject", subject, detail=subject.code)
         messages.success(request, f"Added {subject.code}.")
         return redirect("subjects:list")
     return render(request, "subjects/form.html", {"form": form, "title": "Add a subject", "back": "subjects:list"})
@@ -37,6 +40,7 @@ def subject_edit(request, pk):
     form = SubjectForm(request.POST or None, instance=subject)
     if request.method == "POST" and form.is_valid():
         form.save()
+        log_admin_action(request, "Updated a subject", subject, detail=", ".join(form.changed_data))
         messages.success(request, f"Saved {subject.code}.")
         return redirect("subjects:list")
     return render(request, "subjects/form.html", {"form": form, "title": f"Edit {subject.code}", "back": "subjects:list"})
@@ -55,6 +59,7 @@ def timeslot_add(request):
     form = TimeSlotForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         slot = form.save()
+        log_admin_action(request, "Added a time slot", slot, detail=slot.label)
         messages.success(request, f"Added {slot.label}.")
         return redirect("subjects:timeslots")
     return render(request, "subjects/form.html", {"form": form, "title": "Add a time slot", "back": "subjects:timeslots"})
@@ -67,6 +72,7 @@ def timeslot_edit(request, pk):
     form = TimeSlotForm(request.POST or None, instance=slot)
     if request.method == "POST" and form.is_valid():
         form.save()
+        log_admin_action(request, "Updated a time slot", slot, detail=", ".join(form.changed_data))
         messages.success(request, f"Saved {slot.label}.")
         return redirect("subjects:timeslots")
     return render(request, "subjects/form.html", {"form": form, "title": f"Edit {slot.label}", "back": "subjects:timeslots"})
@@ -79,6 +85,7 @@ def assignment_list(request):
     form = AssignmentForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         a = form.save()
+        log_admin_action(request, "Assigned a subject", a, detail=str(a))
         messages.success(request, f"{a.faculty.name} now teaches {a.subject.code} to {a.class_group.name}.")
         return redirect("subjects:assignments")
     assignments = SubjectAssignment.objects.select_related("faculty", "subject", "class_group").order_by(
@@ -92,6 +99,7 @@ def assignment_remove(request, pk):
     _admin_only(request)
     assignment = get_object_or_404(SubjectAssignment, pk=pk)
     if request.method == "POST":
+        log_admin_action(request, "Removed a subject assignment", assignment, detail=str(assignment))
         assignment.delete()
         messages.success(request, "Assignment removed.")
     return redirect("subjects:assignments")

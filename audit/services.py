@@ -17,3 +17,8 @@ def record(user, action, outcome=AuditLog.Outcome.SUCCESS, target=None, detail="
         outcome=outcome,
         detail=detail,
     )
+
+
+def log_admin_action(request, action, target, detail=""):
+    """Record a successful change made by the administrator (UC-05)."""
+    return record(request.user, action, AuditLog.Outcome.SUCCESS, target=target, detail=detail)

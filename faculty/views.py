@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 
+from audit.services import log_admin_action
+
 from .forms import FacultyForm, NewFacultyForm
 from .models import Faculty
 
@@ -29,6 +31,7 @@ def faculty_add(request):
     form = NewFacultyForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         member = form.save()
+        log_admin_action(request, "Added a faculty member", member, detail=member.employee_id)
         messages.success(request, f"Added {member.name}.")
         return redirect("faculty:list")
     return render(request, "faculty/form.html", {"form": form, "title": "Add a faculty member"})
@@ -41,6 +44,7 @@ def faculty_edit(request, pk):
     form = FacultyForm(request.POST or None, instance=member)
     if request.method == "POST" and form.is_valid():
         form.save()
+        log_admin_action(request, "Updated a faculty member", member, detail=", ".join(form.changed_data))
         messages.success(request, f"Saved changes to {member.name}.")
         return redirect("faculty:list")
     return render(request, "faculty/form.html", {"form": form, "title": f"Edit {member.name}"})
@@ -56,5 +60,6 @@ def faculty_deactivate(request, pk):
         if member.user:
             member.user.is_active = False
             member.user.save(update_fields=["is_active"])
+        log_admin_action(request, "Deactivated a faculty member", member, detail=member.employee_id)
         messages.success(request, f"Deactivated {member.name}.")
     return redirect("faculty:list")
