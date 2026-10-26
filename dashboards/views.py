@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 
+from accounts.ownership import faculty_assignments, faculty_profile, student_profile
+
 from faculty.models import Faculty
 from students.models import ClassGroup, Student
 from subjects.models import Subject
@@ -23,11 +25,9 @@ def _context_for(user):
             "class_count": ClassGroup.objects.count(),
         }
     if user.role == "FACULTY":
-        faculty = Faculty.objects.filter(user=user).first()
-        assignments = faculty.assignments.select_related("subject", "class_group") if faculty else []
-        return {"faculty": faculty, "assignments": assignments}
+        return {"faculty": faculty_profile(user), "assignments": faculty_assignments(user)}
     if user.role == "STUDENT":
-        return {"student": Student.objects.filter(user=user).select_related("class_group").first()}
+        return {"student": student_profile(user)}
     return {}
 
 

@@ -74,3 +74,30 @@ def test_teaches_follows_the_assignments(seeded):
 def test_other_roles_have_no_profile_or_assignments(seeded):
     assert student_profile(user("admin")) is None
     assert not faculty_assignments(user("student1")).exists()
+
+
+# The checks in use on the pages built so far
+
+
+def test_student_dashboard_shows_only_their_own_details(client, seeded):
+    me = Student.objects.get(user__username="student1")
+    other = Student.objects.exclude(pk=me.pk).first()
+    client.force_login(me.user)
+    body = client.get("/dashboard/student/").content.decode()
+    assert me.srn in body
+    assert other.srn not in body
+
+
+def test_faculty_dashboard_lists_only_their_own_subjects(client, seeded):
+    client.force_login(user("faculty2"))
+    body = client.get("/dashboard/faculty/").content.decode()
+    assert "UE24CS342A" in body
+    assert "UE24CS341A" not in body
+
+
+def test_faculty_cannot_open_a_class_they_dont_teach(client, seeded):
+    se = Subject.objects.get(code="UE24CS341A")
+    cse5a = ClassGroup.objects.get(name="CSE-5A")
+    client.force_login(user("faculty2"))
+    assert client.get(f"/attendance/mark/{cse5a.pk}/{se.pk}/").status_code == 404
+    assert client.get(f"/attendance/select/?class_id={cse5a.pk}&subject_id={se.pk}").status_code == 404
