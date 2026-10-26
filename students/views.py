@@ -4,6 +4,8 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
+from audit.services import log_admin_action
+
 from .forms import NewStudentForm, StudentForm
 from .models import Student
 
@@ -36,6 +38,7 @@ def student_add(request):
     form = NewStudentForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         student = form.save()
+        log_admin_action(request, "Added a student", student, detail=student.srn)
         messages.success(request, f"Added {student.name} ({student.srn}).")
         return redirect("students:list")
     return render(request, "students/form.html", {"form": form, "title": "Add a student"})
@@ -49,6 +52,7 @@ def student_edit(request, pk):
     form = StudentForm(request.POST or None, instance=student)
     if request.method == "POST" and form.is_valid():
         form.save()
+        log_admin_action(request, "Updated a student", student, detail=", ".join(form.changed_data))
         messages.success(request, f"Saved changes to {student.name}.")
         return redirect("students:list")
     return render(request, "students/form.html", {"form": form, "title": f"Edit {student.name}"})
@@ -65,5 +69,6 @@ def student_deactivate(request, pk):
         if student.user:
             student.user.is_active = False
             student.user.save(update_fields=["is_active"])
+        log_admin_action(request, "Deactivated a student", student, detail=student.srn)
         messages.success(request, f"Deactivated {student.name}. Their attendance history is kept.")
     return redirect("students:list")
