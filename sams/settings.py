@@ -47,6 +47,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "audit.middleware.DeniedRequestMiddleware",  # records refused pages (SAM-SEC-005)
     "axes.middleware.AxesMiddleware",  # must be last
 ]
 
