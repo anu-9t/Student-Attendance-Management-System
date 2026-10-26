@@ -81,3 +81,38 @@ def test_subject_summary_for_a_class(seeded):
     assert summary[students[0].pk] == (1, 1)
     assert summary[students[1].pk] == (0, 1)
     assert students[2].pk not in summary
+
+
+# UC-03: the student's percentage page
+
+
+def test_student_sees_their_percentage_page(client, seeded):
+    s = Student.objects.get(user__username="student1")
+    mark(s, "UE24CS341A", 20, "Period 1", P)
+    mark(s, "UE24CS341A", 21, "Period 1", A)
+    client.force_login(s.user)
+    body = client.get("/percentage/").content.decode()
+    assert "UE24CS341A" in body
+    assert "50.0%" in body
+    assert "No classes yet" in body  # UE24CS342A has none
+
+
+@pytest.mark.parametrize("username", ["admin", "faculty1"])
+def test_page_is_for_students_only(client, seeded, username):
+    from accounts.models import User
+
+    client.force_login(User.objects.get(username=username))
+    assert client.get("/percentage/").status_code == 403
+
+
+def test_student_dashboard_links_to_the_page(client, seeded):
+    client.force_login(Student.objects.get(user__username="student1").user)
+    assert b'href="/percentage/"' in client.get("/dashboard/student/").content
+
+
+def test_student_login_without_a_record_gets_a_message(client, seeded):
+    from accounts.models import User
+
+    lonely = User.objects.create_user(username="nobody", password="x", role=User.Role.STUDENT)
+    client.force_login(lonely)
+    assert b"isn't linked to a student record" in client.get("/percentage/").content
