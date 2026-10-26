@@ -119,6 +119,20 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Data protection (SAM-NF-004). Nginx ends HTTPS and tells Django so with X-Forwarded-Proto.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+X_FRAME_OPTIONS = "DENY"
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_AGE = int(os.environ.get("DJANGO_SESSION_MINUTES", "30")) * 60  # idle logins expire
+SESSION_SAVE_EVERY_REQUEST = True  # ...counting from the last page opened
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 if not DEBUG:
     SESSION_COOKIE_SECURE = os.environ.get("DJANGO_SECURE_COOKIES", "1") == "1"
     CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
+    SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SSL_REDIRECT", "1") == "1"
+    SECURE_REDIRECT_EXEMPT = [r"^health/$"]  # the container health check calls plain HTTP inside Docker
+    # HSTS stays off until a trusted certificate is in place (the dev certificate is self-signed).
+    SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS", "0"))
