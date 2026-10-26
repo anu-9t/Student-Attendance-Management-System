@@ -91,3 +91,39 @@ def test_a_refused_change_writes_no_success_entry(client, seeded):
     client.force_login(User.objects.get(username="faculty1"))
     client.post("/subjects/add/", {"code": "X1", "name": "X", "semester": 5})
     assert not AuditLog.objects.filter(outcome=AuditLog.Outcome.SUCCESS).exists()
+
+
+# The audit log page
+
+
+def test_admin_reads_the_log_newest_first(admin_client):
+    AuditLog.objects.create(action="First thing", outcome=AuditLog.Outcome.SUCCESS)
+    AuditLog.objects.create(action="Second thing", outcome=AuditLog.Outcome.SUCCESS)
+    response = admin_client.get("/audit/")
+    assert response.status_code == 200
+    body = response.content.decode()
+    assert body.index("Second thing") < body.index("First thing")
+
+
+def test_log_can_be_filtered_by_outcome(admin_client):
+    AuditLog.objects.create(action="Kept", outcome=AuditLog.Outcome.DENIED)
+    AuditLog.objects.create(action="Hidden", outcome=AuditLog.Outcome.SUCCESS)
+    body = admin_client.get("/audit/?outcome=DENIED").content.decode()
+    assert "Kept" in body and "Hidden" not in body
+
+
+def test_log_can_be_searched(admin_client):
+    AuditLog.objects.create(action="Added a student", detail="PES2UG24CS777", outcome=AuditLog.Outcome.SUCCESS)
+    AuditLog.objects.create(action="Added a subject", detail="CS999", outcome=AuditLog.Outcome.SUCCESS)
+    body = admin_client.get("/audit/?q=CS777").content.decode()
+    assert "PES2UG24CS777" in body and "CS999" not in body
+
+
+@pytest.mark.parametrize("username", ["faculty1", "student1"])
+def test_only_the_admin_reads_the_log(client, seeded, username):
+    client.force_login(User.objects.get(username=username))
+    assert client.get("/audit/").status_code == 403
+
+
+def test_admin_dashboard_links_to_the_log(admin_client):
+    assert b'href="/audit/"' in admin_client.get("/dashboard/admin/").content

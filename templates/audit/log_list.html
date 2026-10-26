@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Audit log | SAMS{% endblock %}
+
+{% block content %}
+<h2 class="page-title mb-3">Audit log</h2>
+<p class="text-muted">Every change made by the administrator, every refused page and every failed login. Entries can't be edited or deleted.</p>
+
+<form method="get" class="d-flex flex-wrap gap-2 mb-3">
+    <input type="search" name="q" value="{{ query }}" class="form-control" style="max-width: 280px;" placeholder="Search action, details or user">
+    <select name="outcome" class="form-select" style="max-width: 180px;">
+        <option value="">All outcomes</option>
+        {% for value, label in outcomes %}
+        <option value="{{ value }}" {% if value == outcome %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-outline-primary">Filter</button>
+</form>
+
+<table class="table table-sm table-hover bg-white">
+    <thead><tr><th>When</th><th>User</th><th>Action</th><th>Target</th><th>Outcome</th><th>Details</th></tr></thead>
+    <tbody>
+    {% for e in page %}
+        <tr>
+            <td class="text-nowrap">{{ e.timestamp|date:"d M Y H:i" }}</td>
+            <td>{{ e.user.username|default:"-" }}</td>
+            <td>{{ e.action }}</td>
+            <td>{% if e.target_type %}{{ e.target_type }} #{{ e.target_id }}{% endif %}</td>
+            <td><span class="badge {% if e.outcome == 'SUCCESS' %}bg-success{% elif e.outcome == 'DENIED' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ e.get_outcome_display }}</span></td>
+            <td class="small">{{ e.detail }}</td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="6" class="text-muted">Nothing recorded yet.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% if page.has_other_pages %}
+<nav class="d-flex gap-2 align-items-center">
+    {% if page.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?q={{ query|urlencode }}&outcome={{ outcome }}&page={{ page.previous_page_number }}">Newer</a>{% endif %}
+    <span class="small text-muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?q={{ query|urlencode }}&outcome={{ outcome }}&page={{ page.next_page_number }}">Older</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}
