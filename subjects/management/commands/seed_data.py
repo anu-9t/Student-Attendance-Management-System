@@ -25,7 +25,7 @@ class Command(BaseCommand):
         fac_user, _ = User.objects.get_or_create(username="faculty1", defaults={"role": User.Role.FACULTY})
         stu_users = [User.objects.get_or_create(username=f"student{i}", defaults={"role": User.Role.STUDENT})[0] for i in (1, 2, 3)]
         for u in [admin, fac_user, *stu_users]:
-            if not u.has_usable_password():
+            if not u.password or not u.has_usable_password():
                 u.set_password(PASSWORD)
                 u.save()
 
