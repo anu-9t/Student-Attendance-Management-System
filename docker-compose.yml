@@ -1,4 +1,5 @@
 # Three containers, as in SAD 3.6: Nginx, Django (gunicorn), MySQL.
+# Each one has a health check and restarts on its own if it stops (SAM-NF-002).
 services:
   db:
     image: mysql:8.0
@@ -30,6 +31,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # SAM-NF-002: Docker restarts the app if it stops answering /health/
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/', timeout=4)"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 30s
     restart: unless-stopped
 
   nginx:
@@ -44,7 +52,13 @@ services:
       - static:/app/staticfiles:ro
       - nginx_certs:/etc/nginx/certs
     depends_on:
-      - web
+      web:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "--no-check-certificate", "https://localhost/health/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
 
 volumes:
