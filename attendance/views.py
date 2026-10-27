@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from accounts.models import User
 from accounts.ownership import faculty_assignments, faculty_profile
+from audit.services import record
 from students.models import Student
 from subjects.models import SubjectAssignment, TimeSlot
 
@@ -157,13 +158,21 @@ def modify(request, class_id, subject_id):
     errors = []
     if request.method == "POST" and rows:
         changes = _changes(request, rows)
+        reason = request.POST.get("reason", "").strip()
         if not changes:
             errors.append("Nothing was changed.")
+        elif len(reason) < 5:
+            errors.append("Please give a reason for the change (at least a few words).")
         else:
             with transaction.atomic():
                 for row, new_status in changes:
+                    detail = (
+                        f"{row.student.srn} {assignment.subject.code} {row.date:%Y-%m-%d} {row.time_slot.label}: "
+                        f"{row.status} -> {new_status}. Reason: {reason}"
+                    )
                     row.status = new_status
                     row.save(update_fields=["status", "updated_at"])
+                    record(request.user, "Changed attendance", target=row, detail=detail)
             messages.success(request, f"Updated {len(changes)} record{'s' if len(changes) > 1 else ''}.")
             return redirect(f"{request.path}?date={chosen_date}&slot={chosen_slot}")
 

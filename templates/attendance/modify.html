@@ -48,7 +48,11 @@
         {% endfor %}
         </tbody>
     </table>
-    {% block reason %}{% endblock %}
+    <div class="mb-3" style="max-width: 560px;">
+        <label for="reason" class="form-label">Reason for the change (required, kept in the audit log)</label>
+        <textarea id="reason" name="reason" class="form-control" rows="2" required minlength="5"
+                  placeholder="e.g. Student was at the lab session, marked absent by mistake">{{ request.POST.reason }}</textarea>
+    </div>
     <button type="submit" class="btn btn-primary">Save changes</button>
     <a href="{% url 'attendance:select' %}" class="btn btn-link">Back</a>
 </form>

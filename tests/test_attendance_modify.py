@@ -71,3 +71,61 @@ def test_only_faculty_modify(client, username):
     call_command("seed_data")
     client.force_login(User.objects.get(username=username))
     assert client.get(url(own_assignment())).status_code == 403
+
+
+def change_one(faculty_client, a, slot, reason):
+    row = Attendance.objects.filter(subject=a.subject, date=DAY).order_by("student__srn").first()
+    data = {"date": "2026-10-23", "slot": slot.pk, "reason": reason}
+    for r in Attendance.objects.filter(subject=a.subject, date=DAY):
+        data[f"status_{r.pk}"] = "ABSENT" if r.pk == row.pk else r.status
+    return row, faculty_client.post(url(a), data)
+
+
+def test_a_change_with_a_reason_is_saved(faculty_client):
+    a = own_assignment()
+    slot = saved_sheet(a)
+    row, response = change_one(faculty_client, a, slot, "Left before the class started")
+    assert response.status_code == 302
+    row.refresh_from_db()
+    assert row.status == "ABSENT"
+    assert Attendance.objects.filter(subject=a.subject, date=DAY, status="ABSENT").count() == 1
+
+
+def test_a_change_without_a_reason_is_refused(faculty_client):
+    a = own_assignment()
+    slot = saved_sheet(a)
+    row, response = change_one(faculty_client, a, slot, "")
+    assert response.status_code == 200
+    assert b"Please give a reason" in response.content
+    row.refresh_from_db()
+    assert row.status == "PRESENT"
+
+
+def test_the_change_and_its_reason_go_to_the_audit_log(faculty_client):
+    from audit.models import AuditLog
+
+    a = own_assignment()
+    slot = saved_sheet(a)
+    row, _ = change_one(faculty_client, a, slot, "Medical leave approved")
+    entry = AuditLog.objects.get(action="Changed attendance")
+    assert entry.user.username == "faculty1"
+    assert entry.target_type == "Attendance" and entry.target_id == str(row.pk)
+    assert "PRESENT -> ABSENT" in entry.detail
+    assert "Reason: Medical leave approved" in entry.detail
+
+
+def test_saving_without_changes_says_so(faculty_client):
+    a = own_assignment()
+    slot = saved_sheet(a)
+    data = {"date": "2026-10-23", "slot": slot.pk, "reason": "no change at all"}
+    for r in Attendance.objects.filter(subject=a.subject, date=DAY):
+        data[f"status_{r.pk}"] = r.status
+    assert b"Nothing was changed" in faculty_client.post(url(a), data).content
+
+
+def test_changing_does_not_add_rows(faculty_client):
+    a = own_assignment()
+    slot = saved_sheet(a)
+    before = Attendance.objects.count()
+    change_one(faculty_client, a, slot, "Corrected after checking the register")
+    assert Attendance.objects.count() == before
