@@ -123,3 +123,52 @@ def test_students_cannot_open_reports(client, seeded):
 def test_bad_dates_are_ignored(client, seeded):
     login(client, "admin")
     assert client.get(f"/reports/class/{cse5a().pk}/", {"date_from": "yesterday"}).status_code == 200
+
+
+# Student-wise report and the reports page
+
+
+def test_student_report_lists_each_subject_and_overall(seeded):
+    mark("PES2UG24CS091", "UE24CS341A", 20, "PRESENT")
+    mark("PES2UG24CS091", "UE24CS342A", 20, "ABSENT", slot="Period 3")
+    student = Student.objects.get(srn="PES2UG24CS091")
+    subjects = Subject.objects.filter(code__in=["UE24CS341A", "UE24CS342A"]).order_by("code")
+    report = services.student_report(student, subjects)
+    assert [r[0] for r in report.rows] == ["UE24CS341A", "UE24CS342A", "Overall"]
+    assert report.rows[-1][2:] == [1, 2, "50.0%"]
+
+
+def test_faculty_student_report_shows_only_their_subjects(client, seeded):
+    student = Student.objects.get(srn="PES2UG24CS091")
+    login(client, "faculty2")
+    body = client.get(f"/reports/student/{student.pk}/").content.decode()
+    assert "UE24CS342A" in body and "UE24CS341A" not in body
+
+
+def test_student_report_follows_the_ownership_rules(client, seeded):
+    outsider = Student.objects.create(
+        class_group=ClassGroup.objects.create(name="ME-3A", department="ME", semester=3), srn="PES2UG24ME002", name="X"
+    )
+    login(client, "faculty1")
+    assert client.get(f"/reports/student/{outsider.pk}/").status_code == 403
+    login(client, "admin")
+    assert client.get(f"/reports/student/{outsider.pk}/").status_code == 200
+
+
+def test_reports_page_lists_only_the_faculty_members_own_subjects(client, seeded):
+    login(client, "faculty2")
+    body = client.get("/reports/").content.decode()
+    assert "UE24CS342A" in body and "UE24CS341A" not in body
+
+
+def test_reports_page_finds_students(client, seeded):
+    login(client, "admin")
+    body = client.get("/reports/", {"q": "PES2UG24CS091"}).content.decode()
+    student = Student.objects.get(srn="PES2UG24CS091")
+    assert f"/reports/student/{student.pk}/" in body
+
+
+@pytest.mark.parametrize("username,dashboard", [("admin", "admin"), ("faculty1", "faculty")])
+def test_dashboards_link_to_reports(client, seeded, username, dashboard):
+    login(client, username)
+    assert b'href="/reports/"' in client.get(f"/dashboard/{dashboard}/").content

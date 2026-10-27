@@ -1,13 +1,14 @@
 import datetime as dt
 
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, render
 
 from accounts.models import User
-from accounts.ownership import teaches
+from accounts.ownership import faculty_assignments, get_visible_student, teaches, visible_students
 from accounts.permissions import role_required
 from students.models import ClassGroup
-from subjects.models import Subject
+from subjects.models import Subject, SubjectAssignment
 
 from . import services
 
@@ -52,3 +53,31 @@ def class_report(request, class_id):
     if request.user.role == User.Role.FACULTY and not subjects.exists():
         raise PermissionDenied("You don't teach this class.")
     return _show(request, services.class_report(class_group, subjects, *_dates(request)))
+
+
+@role_required(*STAFF)
+def student_report(request, pk):
+    """SAM-F-018: one student across their subjects (the ones you teach, for faculty)."""
+    student = get_visible_student(request.user, pk)
+    subjects = services.subjects_for_class(request.user, student.class_group)
+    return _show(request, services.student_report(student, subjects, *_dates(request)))
+
+
+@role_required(*STAFF)
+def index(request):
+    """Pick a report: the admin sees every class and subject, faculty only their own."""
+    if request.user.role == User.Role.ADMIN:
+        pairs = SubjectAssignment.objects.select_related("class_group", "subject")
+    else:
+        pairs = faculty_assignments(request.user)
+    pairs = pairs.order_by("class_group__name", "subject__code")
+    classes = ClassGroup.objects.filter(pk__in=pairs.values("class_group")).order_by("name")
+    query = request.GET.get("q", "").strip()
+    students = []
+    if query:
+        students = visible_students(request.user).filter(Q(srn__icontains=query) | Q(name__icontains=query))[:20]
+    return render(
+        request,
+        "reports/index.html",
+        {"pairs": pairs.distinct(), "classes": classes, "query": query, "students": students},
+    )
