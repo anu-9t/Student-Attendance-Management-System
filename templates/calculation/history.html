@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance history | SAMS{% endblock %}
+
+{% block content %}
+<h2 class="page-title mb-2">{% if own %}My attendance history{% else %}Attendance history{% endif %}</h2>
+{% if student %}
+<p class="text-muted">{{ student.name }} &middot; {{ student.srn }} &middot; {{ student.class_group.name }}</p>
+<form method="get" class="d-flex gap-2 mb-3" style="max-width: 420px;">
+    <select name="subject" class="form-select" aria-label="Subject">
+        <option value="">All subjects</option>
+        {% for s in subjects %}
+        <option value="{{ s.pk }}" {% if s.pk == subject_id %}selected{% endif %}>{{ s.code }} {{ s.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-outline-primary">Show</button>
+</form>
+
+<table class="table table-sm bg-white">
+    <thead><tr><th>Date</th><th>Time slot</th><th>Subject</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+        <tr>
+            <td class="text-nowrap">{{ r.date|date:"D d M Y" }}</td>
+            <td>{{ r.time_slot.label }} ({{ r.time_slot.start_time|time:"H:i" }})</td>
+            <td>{{ r.subject.code }} {{ r.subject.name }}</td>
+            <td>{% if r.status == "PRESENT" %}<span class="badge bg-success">Present</span>{% else %}<span class="badge bg-danger">Absent</span>{% endif %}</td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="4" class="text-muted">No attendance has been recorded yet.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% if page.has_other_pages %}
+<nav class="d-flex gap-2 align-items-center mb-3">
+    {% if page.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?subject={{ subject_id|default_if_none:'' }}&page={{ page.previous_page_number }}">Newer</a>{% endif %}
+    <span class="small text-muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?subject={{ subject_id|default_if_none:'' }}&page={{ page.next_page_number }}">Older</a>{% endif %}
+</nav>
+{% endif %}
+{% else %}
+<p class="text-muted">Your login isn't linked to a student record. Please contact the administrator.</p>
+{% endif %}
+<a href="/" class="btn btn-link px-0">Back to dashboard</a>
+{% endblock %}
