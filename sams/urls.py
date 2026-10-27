@@ -22,6 +22,7 @@ urlpatterns = [
     path("subjects/", include("subjects.urls")),
     path("attendance/", include("attendance.urls")),
     path("percentage/", include("calculation.urls")),
+    path("history/", include("calculation.history_urls")),
     path("notifications/", include("notification.urls")),
     path("reports/", include("reports.urls")),
     path("audit/", include("audit.urls")),

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance history | SAMS{% endblock %}
+
+{% block content %}
+<h2 class="page-title mb-2">{% if own %}My attendance history{% else %}Attendance history{% endif %}</h2>
+{% if student %}
+<p class="text-muted">{{ student.name }} &middot; {{ student.srn }} &middot; {{ student.class_group.name }}</p>
+{% block filters %}{% endblock %}
+
+<table class="table table-sm bg-white">
+    <thead><tr><th>Date</th><th>Time slot</th><th>Subject</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+        <tr>
+            <td class="text-nowrap">{{ r.date|date:"D d M Y" }}</td>
+            <td>{{ r.time_slot.label }} ({{ r.time_slot.start_time|time:"H:i" }})</td>
+            <td>{{ r.subject.code }} {{ r.subject.name }}</td>
+            <td>{% if r.status == "PRESENT" %}<span class="badge bg-success">Present</span>{% else %}<span class="badge bg-danger">Absent</span>{% endif %}</td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="4" class="text-muted">No attendance has been recorded yet.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% block pages %}{% endblock %}
+{% else %}
+<p class="text-muted">Your login isn't linked to a student record. Please contact the administrator.</p>
+{% endif %}
+<a href="/" class="btn btn-link px-0">Back to dashboard</a>
+{% endblock %}
