@@ -11,6 +11,8 @@
         {{ selected_assignment.subject.code }} {{ selected_assignment.subject.name }}
         <a href="{% url 'attendance:mark' selected_assignment.class_group_id selected_assignment.subject_id %}"
            class="btn btn-sm btn-primary ms-3">Mark attendance</a>
+        <a href="{% url 'attendance:modify' selected_assignment.class_group_id selected_assignment.subject_id %}"
+           class="btn btn-sm btn-outline-primary ms-1">Modify attendance</a>
     </div>
 {% endif %}
 

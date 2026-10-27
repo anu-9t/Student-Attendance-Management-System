@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Modify attendance | SAMS{% endblock %}
+
+{% block content %}
+<h2 class="page-title mb-1">Modify attendance</h2>
+<p class="text-muted mb-4">
+    {{ assignment.class_group.name }} &middot; {{ assignment.subject.code }} {{ assignment.subject.name }}
+</p>
+
+{% for message in messages %}
+<div class="alert alert-success py-2">{{ message }}</div>
+{% endfor %}
+{% for error in errors %}
+<div class="alert alert-danger py-2">{{ error }}</div>
+{% endfor %}
+
+<form method="get" class="d-flex flex-wrap gap-2 align-items-end mb-3">
+    <div>
+        <label for="session" class="form-label">Class already marked</label>
+        <select id="session" class="form-select" onchange="var v=this.value.split('|'); this.form.date.value=v[0]; this.form.slot.value=v[1]; this.form.submit();">
+            <option value="">Pick a date and slot</option>
+            {% for s in sessions %}
+            <option value="{{ s.date|date:'Y-m-d' }}|{{ s.time_slot }}" {% if s.date|date:'Y-m-d' == chosen_date and s.time_slot|stringformat:'s' == chosen_slot %}selected{% endif %}>{{ s.date|date:"D d M Y" }}, {{ s.time_slot__label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <input type="hidden" name="date" value="{{ chosen_date }}">
+    <input type="hidden" name="slot" value="{{ chosen_slot }}">
+    <noscript><button type="submit" class="btn btn-outline-primary">Open</button></noscript>
+</form>
+
+{% if rows %}
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="date" value="{{ chosen_date }}">
+    <input type="hidden" name="slot" value="{{ chosen_slot }}">
+    <table class="table bg-white align-middle">
+        <thead><tr><th>SRN</th><th>Name</th><th class="text-center">Present</th><th class="text-center">Absent</th></tr></thead>
+        <tbody>
+        {% for r in rows %}
+            <tr>
+                <td>{{ r.student.srn }}</td>
+                <td>{{ r.student.name }}</td>
+                <td class="text-center"><input type="radio" name="status_{{ r.pk }}" value="PRESENT" {% if r.status == "PRESENT" %}checked{% endif %} aria-label="Present"></td>
+                <td class="text-center"><input type="radio" name="status_{{ r.pk }}" value="ABSENT" {% if r.status == "ABSENT" %}checked{% endif %} aria-label="Absent"></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="mb-3" style="max-width: 560px;">
+        <label for="reason" class="form-label">Reason for the change (required, kept in the audit log)</label>
+        <textarea id="reason" name="reason" class="form-control" rows="2" required minlength="5"
+                  placeholder="e.g. Student was at the lab session, marked absent by mistake">{{ request.POST.reason }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Save changes</button>
+    <a href="{% url 'attendance:select' %}" class="btn btn-link">Back</a>
+</form>
+{% elif chosen_date %}
+<p class="text-muted">Nothing was marked for that date and slot.</p>
+{% elif not sessions %}
+<p class="text-muted">No attendance has been saved for this class and subject yet.</p>
+{% endif %}
+{% endblock %}
