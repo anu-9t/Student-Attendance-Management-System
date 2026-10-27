@@ -62,3 +62,58 @@ def test_dashboard_links_to_history(client, seeded):
 def test_own_history_page_is_for_students(client, seeded, username):
     client.force_login(User.objects.get(username=username))
     assert client.get("/history/").status_code == 403
+
+
+# Filtering, pages, and who else can open a student's history
+
+
+def test_history_can_be_filtered_by_subject(client, seeded):
+    mark(me(), "UE24CS341A", 20, "Period 1")
+    mark(me(), "UE24CS342A", 21, "Period 3")
+    client.force_login(me().user)
+    se = Subject.objects.get(code="UE24CS341A")
+    body = client.get("/history/", {"subject": se.pk}).content.decode()
+    assert "Tue 20 Oct 2026" in body and "Wed 21 Oct 2026" not in body
+
+
+def test_long_history_is_split_into_pages(client, seeded):
+    slots = list(TimeSlot.objects.all())
+    for day in range(1, 7):  # 36 classes, 25 to a page
+        for slot in slots:
+            mark(me(), "UE24CS341A", day, slot.label)
+    client.force_login(me().user)
+    first = client.get("/history/").content.decode()
+    assert "Page 1 of 2" in first
+    assert "Tue 06 Oct 2026" in first and "Thu 01 Oct 2026" not in first
+    assert "Thu 01 Oct 2026" in client.get("/history/", {"page": 2}).content.decode()
+
+
+def test_faculty_open_the_history_of_a_student_they_teach(client, seeded):
+    mark(me(), "UE24CS341A", 20, "Period 1")
+    client.force_login(User.objects.get(username="faculty1"))
+    response = client.get(f"/history/student/{me().pk}/")
+    assert response.status_code == 200
+    assert me().srn.encode() in response.content
+
+
+def test_admin_opens_any_students_history(client, seeded):
+    client.force_login(User.objects.get(username="admin"))
+    assert client.get(f"/history/student/{me().pk}/").status_code == 200
+
+
+def test_a_student_cannot_open_someone_elses_history(client, seeded):
+    other = Student.objects.get(user__username="student2")
+    client.force_login(me().user)
+    assert client.get(f"/history/student/{other.pk}/").status_code == 403
+
+
+def test_faculty_cannot_open_a_student_they_dont_teach(client, seeded):
+    from students.models import ClassGroup
+
+    elsewhere = Student.objects.create(
+        class_group=ClassGroup.objects.create(name="ME-3A", department="ME", semester=3),
+        srn="PES2UG24ME001",
+        name="Other Department",
+    )
+    client.force_login(User.objects.get(username="faculty2"))
+    assert client.get(f"/history/student/{elsewhere.pk}/").status_code == 403
