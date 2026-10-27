@@ -3,7 +3,6 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 
 from accounts.ownership import faculty_assignments, faculty_profile, student_profile
-
 from faculty.models import Faculty
 from students.models import ClassGroup, Student
 from subjects.models import Subject

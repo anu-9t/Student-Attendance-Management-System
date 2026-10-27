@@ -13,6 +13,7 @@
 - All tests pass (`pytest`), and line coverage stays at 85% or more.
 - `python manage.py check` passes and every model change has a migration.
 - Bandit finds no medium or high severity issues.
+- `ruff check .` passes (settings in ruff.toml). `ruff check . --fix` sorts imports for you.
 - The Docker image builds.
 
 A pull request is merged only when CI is green and a reviewer has approved it.

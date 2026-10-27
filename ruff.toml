@@ -1,0 +1,10 @@
+# Lint settings (SAM-NF-006). CI runs `ruff check .` on every pull request.
+line-length = 120
+target-version = "py310"
+extend-exclude = ["*/migrations/*"]
+
+[lint]
+# E/W: style errors, F: real mistakes (unused or undefined names), I: import order, B: likely bugs
+select = ["E", "F", "W", "I", "B"]
+# Long lines are left to review: wrapping Django templates strings and test data often hurts readability.
+ignore = ["E501"]
