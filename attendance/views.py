@@ -131,3 +131,61 @@ def _save(request, faculty, assignment, students, context):
         f"Saved attendance for {len(statuses)} students, {len(slots)} slot{'s' if len(slots) > 1 else ''}, on {date:%d %b %Y}.",
     )
     return []
+
+
+@login_required
+def modify(request, class_id, subject_id):
+    """SAM-F-014: correct attendance that was already saved, one date and slot at a time."""
+    if request.user.role != User.Role.FACULTY:
+        return HttpResponseForbidden("Only faculty members modify attendance.")
+    _, assignment = _assignment_for(request, class_id, subject_id)
+    if assignment is None:
+        return HttpResponseNotFound("That class and subject are not assigned to you.")
+
+    marked = Attendance.objects.filter(subject=assignment.subject, student__class_group=assignment.class_group)
+    sessions = (
+        marked.values("date", "time_slot", "time_slot__label").distinct().order_by("-date", "time_slot__start_time")[:30]
+    )
+    source = request.POST if request.method == "POST" else request.GET
+    rows, chosen_date, chosen_slot = [], source.get("date", ""), source.get("slot", "")
+    try:
+        day = dt.date.fromisoformat(chosen_date)
+        rows = list(marked.filter(date=day, time_slot_id=int(chosen_slot)).select_related("student", "time_slot"))
+    except ValueError:
+        pass
+
+    errors = []
+    if request.method == "POST" and rows:
+        changes = _changes(request, rows)
+        if not changes:
+            errors.append("Nothing was changed.")
+        else:
+            with transaction.atomic():
+                for row, new_status in changes:
+                    row.status = new_status
+                    row.save(update_fields=["status", "updated_at"])
+            messages.success(request, f"Updated {len(changes)} record{'s' if len(changes) > 1 else ''}.")
+            return redirect(f"{request.path}?date={chosen_date}&slot={chosen_slot}")
+
+    return render(
+        request,
+        "attendance/modify.html",
+        {
+            "assignment": assignment,
+            "sessions": sessions,
+            "rows": rows,
+            "chosen_date": chosen_date,
+            "chosen_slot": chosen_slot,
+            "errors": errors,
+        },
+    )
+
+
+def _changes(request, rows):
+    """The rows whose status the faculty member changed, with the new status."""
+    changes = []
+    for row in rows:
+        value = request.POST.get(f"status_{row.pk}")
+        if value in Attendance.Status.values and value != row.status:
+            changes.append((row, value))
+    return changes
