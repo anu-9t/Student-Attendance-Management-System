@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Reports | SAMS{% endblock %}
+
+{% block content %}
+<h2 class="page-title mb-4">Attendance reports</h2>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="dashboard-card h-100">
+            <h5>Subject-wise</h5>
+            <p class="small text-muted">Every student in one class, for one subject.</p>
+            <ul class="list-unstyled mb-0">
+            {% for a in pairs %}
+                <li><a href="{% url 'reports:subject' a.class_group_id a.subject_id %}">{{ a.subject.code }} {{ a.subject.name }} &middot; {{ a.class_group.name }}</a></li>
+            {% empty %}
+                <li class="text-muted">No subjects assigned yet.</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="dashboard-card h-100">
+            <h5>Class-wise</h5>
+            <p class="small text-muted">Every student in a class, across {% if user.role == "ADMIN" %}all its subjects{% else %}the subjects you teach there{% endif %}.</p>
+            <ul class="list-unstyled mb-0">
+            {% for c in classes %}
+                <li><a href="{% url 'reports:class' c.pk %}">{{ c.name }}</a></li>
+            {% empty %}
+                <li class="text-muted">No classes yet.</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="dashboard-card">
+            <h5>Student-wise</h5>
+            <form method="get" class="d-flex gap-2 mb-2" style="max-width: 420px;">
+                <input type="search" name="q" value="{{ query }}" class="form-control" placeholder="SRN or name">
+                <button type="submit" class="btn btn-outline-primary">Find</button>
+            </form>
+            {% if query %}
+            <ul class="list-unstyled mb-0">
+            {% for s in students %}
+                <li><a href="{% url 'reports:student' s.pk %}">{{ s.srn }} {{ s.name }}</a> <span class="text-muted small">{{ s.class_group.name }}</span></li>
+            {% empty %}
+                <li class="text-muted">No student you can see matches "{{ query }}".</li>
+            {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<a href="/" class="btn btn-link px-0 mt-3">Back to dashboard</a>
+{% endblock %}

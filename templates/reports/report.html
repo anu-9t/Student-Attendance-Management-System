@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}{{ report.title }} | SAMS{% endblock %}
+
+{% block content %}
+<h2 class="page-title mb-1">{{ report.title|capfirst }}</h2>
+<p class="text-muted">{{ report.subtitle }}</p>
+
+<form method="get" class="d-flex flex-wrap gap-2 align-items-end mb-3 no-print">
+    <div>
+        <label for="date_from" class="form-label small mb-0">From</label>
+        <input type="date" id="date_from" name="date_from" class="form-control form-control-sm" value="{{ date_from|date:'Y-m-d' }}">
+    </div>
+    <div>
+        <label for="date_to" class="form-label small mb-0">To</label>
+        <input type="date" id="date_to" name="date_to" class="form-control form-control-sm" value="{{ date_to|date:'Y-m-d' }}">
+    </div>
+    <button type="submit" class="btn btn-sm btn-outline-primary">Apply</button>
+    {% block export %}{% endblock %}
+</form>
+
+<table class="table table-sm table-hover bg-white">
+    <thead><tr>{% for c in report.columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for row, student_id in rows %}
+        <tr>
+            {% for cell in row %}
+            <td>{% if forloop.first and student_id %}<a href="/history/student/{{ student_id }}/">{{ cell }}</a>{% else %}{{ cell }}{% endif %}</td>
+            {% endfor %}
+        </tr>
+    {% empty %}
+        <tr><td colspan="{{ report.columns|length }}" class="text-muted">No active students.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+<p class="small text-muted">Each one-hour slot counts as one class. "-" means no classes were held in the period.</p>
+<a href="/" class="btn btn-link px-0 no-print">Back to dashboard</a>
+{% endblock %}
