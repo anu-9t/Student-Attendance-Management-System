@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load alerts %}
 
 {% block title %}Faculty Dashboard | SAMS{% endblock %}
 
@@ -19,6 +20,18 @@
 </ul>
 {% else %}
 <p class="text-muted">No subjects have been assigned to you yet.</p>
+{% endif %}
+
+{% flagged_for user as flagged %}
+{% if flagged %}
+<h5 class="mt-4">Students below {% threshold as t %}{{ t|floatformat:"-1" }}%</h5>
+<div class="alert alert-warning">
+    {% for a, students in flagged %}
+    <div class="mb-1"><strong>{{ a.subject.code }} &middot; {{ a.class_group.name }}:</strong>
+        {% for s, pct in students %}<a href="/history/student/{{ s.pk }}/">{{ s.name }}</a> ({{ pct }}%){% if not forloop.last %}, {% endif %}{% endfor %}
+    </div>
+    {% endfor %}
+</div>
 {% endif %}
 
 <div class="row g-4 mt-3">

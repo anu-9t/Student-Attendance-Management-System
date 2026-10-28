@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load alerts %}
 
 {% block title %}Student Dashboard | SAMS{% endblock %}
 
@@ -12,6 +13,14 @@
 
 {% if student %}
 <p>{{ student.name }} &middot; {{ student.srn }} &middot; {{ student.class_group.name }}</p>
+{% endif %}
+
+{% low_attendance_for user as low %}
+{% if low %}
+<div class="alert alert-warning" role="alert">
+    <strong>Low attendance:</strong> you are below {% threshold as t %}{{ t|floatformat:"-1" }}% in
+    {% for r in low %}{{ r.subject.code }} ({{ r.percent }}%){% if not forloop.last %}, {% endif %}{% endfor %}.
+</div>
 {% endif %}
 
 <div class="row g-4 mt-3">
