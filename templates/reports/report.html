@@ -16,7 +16,7 @@
         <input type="date" id="date_to" name="date_to" class="form-control form-control-sm" value="{{ date_to|date:'Y-m-d' }}">
     </div>
     <button type="submit" class="btn btn-sm btn-outline-primary">Apply</button>
-    {% block export %}{% endblock %}
+    <a class="btn btn-sm btn-outline-secondary ms-auto" href="?{% if date_from %}date_from={{ date_from|date:'Y-m-d' }}&{% endif %}{% if date_to %}date_to={{ date_to|date:'Y-m-d' }}&{% endif %}format=csv">Download CSV</a>
 </form>
 
 <table class="table table-sm table-hover bg-white">
