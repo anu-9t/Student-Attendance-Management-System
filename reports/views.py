@@ -10,7 +10,7 @@ from accounts.permissions import role_required
 from students.models import ClassGroup
 from subjects.models import Subject, SubjectAssignment
 
-from . import services
+from . import export, services
 
 STAFF = (User.Role.ADMIN, User.Role.FACULTY)
 
@@ -27,6 +27,10 @@ def _dates(request):
 
 
 def _show(request, report):
+    if request.GET.get("format") == "csv":
+        return export.as_csv(report)
+    if request.GET.get("format") == "pdf":
+        return export.as_pdf(report, generated_by=request.user.username)
     date_from, date_to = _dates(request)
     return render(
         request,

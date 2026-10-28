@@ -2,3 +2,4 @@ Django>=5.1,<5.3
 django-axes>=6.5
 mysqlclient>=2.2
 gunicorn>=22.0
+reportlab>=4.0
