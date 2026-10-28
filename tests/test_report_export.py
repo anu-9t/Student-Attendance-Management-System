@@ -80,3 +80,24 @@ def test_faculty_cannot_download_a_class_they_dont_teach(client):
     other = ClassGroup.objects.create(name="ME-3A", department="ME", semester=3)
     client.force_login(User.objects.get(username="faculty1"))
     assert client.get(f"/reports/class/{other.pk}/", {"format": "csv"}).status_code == 403
+
+
+def test_pdf_download_is_a_real_pdf(admin_client):
+    mark("PES2UG24CS091", 20, "PRESENT")
+    response = admin_client.get(class_url(), {"format": "pdf"})
+    assert response["Content-Type"] == "application/pdf"
+    assert response.content.startswith(b"%PDF")
+    assert ".pdf" in response["Content-Disposition"]
+
+
+def test_pdf_of_an_empty_class_still_builds(admin_client):
+    empty = ClassGroup.objects.create(name="CSE-5Z", department="CSE", semester=5)
+    response = admin_client.get(f"/reports/class/{empty.pk}/", {"format": "pdf"})
+    assert response.content.startswith(b"%PDF")
+
+
+def test_report_page_can_be_printed(admin_client):
+    body = admin_client.get(class_url()).content
+    assert b"window.print()" in body
+    assert b"@media print" in body
+    assert b"format=pdf" in body

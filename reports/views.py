@@ -29,6 +29,8 @@ def _dates(request):
 def _show(request, report):
     if request.GET.get("format") == "csv":
         return export.as_csv(report)
+    if request.GET.get("format") == "pdf":
+        return export.as_pdf(report, generated_by=request.user.username)
     date_from, date_to = _dates(request)
     return render(
         request,

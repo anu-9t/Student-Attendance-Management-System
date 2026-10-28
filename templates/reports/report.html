@@ -3,6 +3,14 @@
 {% block title %}{{ report.title }} | SAMS{% endblock %}
 
 {% block content %}
+<style>
+    @media print {
+        .navbar, .no-print { display: none !important; }
+        main.container { margin-top: 0 !important; max-width: 100%; }
+        body { background: white; }
+        a { color: inherit; text-decoration: none; }
+    }
+</style>
 <h2 class="page-title mb-1">{{ report.title|capfirst }}</h2>
 <p class="text-muted">{{ report.subtitle }}</p>
 
@@ -17,6 +25,8 @@
     </div>
     <button type="submit" class="btn btn-sm btn-outline-primary">Apply</button>
     <a class="btn btn-sm btn-outline-secondary ms-auto" href="?{% if date_from %}date_from={{ date_from|date:'Y-m-d' }}&{% endif %}{% if date_to %}date_to={{ date_to|date:'Y-m-d' }}&{% endif %}format=csv">Download CSV</a>
+    <a class="btn btn-sm btn-outline-secondary" href="?{% if date_from %}date_from={{ date_from|date:'Y-m-d' }}&{% endif %}{% if date_to %}date_to={{ date_to|date:'Y-m-d' }}&{% endif %}format=pdf">Download PDF</a>
+    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.print()">Print</button>
 </form>
 
 <table class="table table-sm table-hover bg-white">
