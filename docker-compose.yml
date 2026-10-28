@@ -28,6 +28,7 @@ services:
              gunicorn sams.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     volumes:
       - static:/app/staticfiles
+      - ./backups:/app/backups   # backup_db writes here, so backups survive the container
     depends_on:
       db:
         condition: service_healthy

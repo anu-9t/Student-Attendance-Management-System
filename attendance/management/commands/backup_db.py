@@ -13,6 +13,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from audit.models import AuditLog
 from audit.services import record
 
 # Tables Django rebuilds by itself, or that only hold short-lived data.
@@ -34,11 +35,17 @@ class Command(BaseCommand):
         folder = Path(options["dir"]) if options["dir"] else backup_dir()
         folder.mkdir(parents=True, exist_ok=True)
         path = folder / f"sams-{timezone.localtime():%Y%m%d-%H%M%S}.json.gz"
-        with gzip.open(path, "wt", encoding="utf-8") as out:
-            call_command(
-                "dumpdata", natural_foreign=True, natural_primary=True, exclude=EXCLUDE, indent=None, stdout=out
-            )
-        record(None, "Backed up the database", detail=path.name)
+        # Write the audit entry first, so the backup itself contains it.
+        entry = record(None, "Backed up the database", detail=path.name)
+        try:
+            with gzip.open(path, "wt", encoding="utf-8") as out:
+                call_command(
+                    "dumpdata", natural_foreign=True, natural_primary=True, exclude=EXCLUDE, indent=None, stdout=out
+                )
+        except Exception as exc:
+            path.unlink(missing_ok=True)
+            record(None, "Backup failed", AuditLog.Outcome.FAILED, detail=f"{path.name}: {exc} (entry {entry.pk})")
+            raise
 
         if options["keep"] > 0:
             old = sorted(folder.glob("sams-*.json.gz"))[: -options["keep"]]
