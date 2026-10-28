@@ -15,7 +15,7 @@
             <td>{{ r.subject.code }} {{ r.subject.name }}</td>
             <td class="text-end">{{ r.attended }}</td>
             <td class="text-end">{{ r.total }}</td>
-            <td class="text-end">{% if r.percent is None %}<span class="text-muted">No classes yet</span>{% else %}<strong>{{ r.percent }}%</strong>{% endif %}</td>
+            <td class="text-end">{% if r.percent is None %}<span class="text-muted">No classes yet</span>{% else %}<strong>{{ r.percent }}%</strong>{% if r.low %} <span class="badge bg-warning text-dark">Below {{ threshold|floatformat:"-1" }}%</span>{% endif %}{% endif %}</td>
         </tr>
     {% empty %}
         <tr><td colspan="4" class="text-muted">No subjects have been assigned to your class yet.</td></tr>
@@ -32,7 +32,7 @@
     </tfoot>
     {% endif %}
 </table>
-<p class="small text-muted">Each one-hour slot counts as one class, so a two-hour lab counts as two.</p>
+<p class="small text-muted">Each one-hour slot counts as one class, so a two-hour lab counts as two. Subjects below {{ threshold|floatformat:"-1" }}% are flagged.</p>
 {% else %}
 <p class="text-muted">Your login isn't linked to a student record. Please contact the administrator.</p>
 {% endif %}

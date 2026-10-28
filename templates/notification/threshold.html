@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance threshold | SAMS{% endblock %}
+
+{% block content %}
+<h2 class="page-title mb-3">Low-attendance threshold</h2>
+{% for message in messages %}
+<div class="alert alert-success py-2">{{ message }}</div>
+{% endfor %}
+<p class="text-muted">Currently {{ current|floatformat:"-1" }}%. Students below it in any subject see a warning, and their faculty see them listed.</p>
+<form method="post" class="dashboard-card" style="max-width: 420px;">
+    {% csrf_token %}
+    <label for="{{ form.threshold.id_for_label }}" class="form-label">{{ form.threshold.label }}</label>
+    {{ form.threshold }}
+    <div class="form-text">{{ form.threshold.help_text }}</div>
+    {% for error in form.threshold.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+    <button type="submit" class="btn btn-primary mt-3">Save</button>
+    <a href="/" class="btn btn-link mt-3">Cancel</a>
+</form>
+{% endblock %}
