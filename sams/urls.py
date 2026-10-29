@@ -1,12 +1,22 @@
 from django.contrib import admin
 from django.contrib.auth.decorators import login_not_required
+from django.db import DatabaseError, connection
 from django.http import JsonResponse
 from django.urls import include, path
 
 
 @login_not_required
 def health(request):
-    """Used by docker-compose and the pipeline to see that the app is up."""
+    """Used by docker-compose and the pipeline to see that the app is up (SAM-NF-002).
+
+    It also asks the database a trivial question, so a lost database connection shows up
+    as 503 and Docker marks the container unhealthy instead of serving error pages.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+    except DatabaseError:
+        return JsonResponse({"status": "error", "detail": "database unavailable"}, status=503)
     return JsonResponse({"status": "ok"})
 
 
