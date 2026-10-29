@@ -28,6 +28,8 @@ class Attendance(models.Model):
         indexes = [
             models.Index(fields=["student", "subject", "date"], name="att_student_subject_date"),
             models.Index(fields=["subject", "date"], name="att_subject_date"),
+            # Report counts group by student and subject and count the PRESENT rows (SAM-NF-001).
+            models.Index(fields=["subject", "student", "status"], name="att_subject_student_status"),
         ]
 
     def __str__(self):

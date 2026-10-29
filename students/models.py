@@ -24,6 +24,8 @@ class Student(models.Model):
 
     class Meta:
         ordering = ["srn"]
+        # Reports and the marking sheet fetch "the active students of a class" (SAM-NF-001).
+        indexes = [models.Index(fields=["class_group", "is_active"], name="student_class_active")]
 
     def __str__(self):
         return f"{self.srn} {self.name}"

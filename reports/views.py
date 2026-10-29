@@ -1,18 +1,21 @@
 import datetime as dt
 
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, render
 
 from accounts.models import User
 from accounts.ownership import faculty_assignments, get_visible_student, teaches, visible_students
 from accounts.permissions import role_required
+from notification.services import get_threshold, is_below
 from students.models import ClassGroup
 from subjects.models import Subject, SubjectAssignment
 
 from . import export, services
 
 STAFF = (User.Role.ADMIN, User.Role.FACULTY)
+PER_PAGE = 50  # rows per page on screen; downloads always have every row
 
 
 def _dates(request):
@@ -32,11 +35,28 @@ def _show(request, report):
     if request.GET.get("format") == "pdf":
         return export.as_pdf(report, generated_by=request.user.username)
     date_from, date_to = _dates(request)
+    page = Paginator(_flagged_rows(report), PER_PAGE).get_page(request.GET.get("page"))
     return render(
         request,
         "reports/report.html",
-        {"report": report, "rows": zip(report.rows, report.links, strict=True), "date_from": date_from, "date_to": date_to},
+        {"report": report, "rows": page, "page": page, "date_from": date_from, "date_to": date_to,
+         "threshold": get_threshold()},
     )
+
+
+def _flagged_rows(report):
+    """Each row as ([(cell, below_threshold), ...], student_id), so low percentages can be highlighted."""
+    threshold = get_threshold()
+    rows = []
+    for cells, student_id in zip(report.rows, report.links, strict=True):
+        flagged = []
+        for i, cell in enumerate(cells):
+            low = False
+            if i in report.percent_columns and isinstance(cell, str) and cell.endswith("%"):
+                low = is_below(float(cell[:-1]), threshold)
+            flagged.append((cell, low))
+        rows.append((flagged, student_id))
+    return rows
 
 
 @role_required(*STAFF)
