@@ -34,8 +34,8 @@
     <tbody>
     {% for row, student_id in rows %}
         <tr>
-            {% for cell in row %}
-            <td>{% if forloop.first and student_id %}<a href="/history/student/{{ student_id }}/">{{ cell }}</a>{% else %}{{ cell }}{% endif %}</td>
+            {% for cell, low in row %}
+            <td{% if low %} class="text-danger fw-bold"{% endif %}>{% if forloop.first and student_id %}<a href="/history/student/{{ student_id }}/">{{ cell }}</a>{% else %}{{ cell }}{% endif %}</td>
             {% endfor %}
         </tr>
     {% empty %}
@@ -43,6 +43,13 @@
     {% endfor %}
     </tbody>
 </table>
-<p class="small text-muted">Each one-hour slot counts as one class. "-" means no classes were held in the period.</p>
+{% if page.has_other_pages %}
+<nav class="d-flex gap-2 align-items-center mb-2 no-print">
+    {% if page.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?{% if date_from %}date_from={{ date_from|date:'Y-m-d' }}&{% endif %}{% if date_to %}date_to={{ date_to|date:'Y-m-d' }}&{% endif %}page={{ page.previous_page_number }}">Previous</a>{% endif %}
+    <span class="small text-muted">Page {{ page.number }} of {{ page.paginator.num_pages }} ({{ page.paginator.count }} rows; downloads include all of them)</span>
+    {% if page.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?{% if date_from %}date_from={{ date_from|date:'Y-m-d' }}&{% endif %}{% if date_to %}date_to={{ date_to|date:'Y-m-d' }}&{% endif %}page={{ page.next_page_number }}">Next</a>{% endif %}
+</nav>
+{% endif %}
+<p class="small text-muted">Each one-hour slot counts as one class. "-" means no classes were held in the period. Percentages in red are below the {{ threshold|floatformat:"-1" }}% threshold.</p>
 <a href="/" class="btn btn-link px-0 no-print">Back to dashboard</a>
 {% endblock %}

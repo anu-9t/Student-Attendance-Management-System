@@ -60,3 +60,33 @@ def test_class_report_queries_dont_grow_with_the_class():
 def test_the_indexes_exist():
     names = {i.name for i in Attendance._meta.indexes} | {i.name for i in Student._meta.indexes}
     assert {"att_subject_student_status", "student_class_active"} <= names
+
+
+# Long reports are paged on screen; low percentages stand out
+
+
+def test_long_report_is_paged_but_downloads_have_every_row(client):
+    from accounts.models import User
+
+    call_command("seed_data")
+    big, subject = build_class("BIG", 120, days=1)
+    client.force_login(User.objects.get(username="admin"))
+    first = client.get(f"/reports/subject/{big.pk}/{subject.pk}/").content.decode()
+    assert "Page 1 of 3" in first
+    assert "BIG-000" in first and "BIG-050" not in first
+    assert "BIG-119" in client.get(f"/reports/subject/{big.pk}/{subject.pk}/", {"page": 3}).content.decode()
+    csv_text = client.get(f"/reports/subject/{big.pk}/{subject.pk}/", {"format": "csv"}).content.decode("utf-8-sig")
+    assert csv_text.count("BIG-") == 120
+
+
+def test_percentages_below_the_threshold_are_highlighted(client):
+    from accounts.models import User
+
+    call_command("seed_data")
+    group, subject = build_class("LOW", 2, days=4)
+    weak = Student.objects.get(srn="LOW-000")
+    Attendance.objects.filter(student=weak, date__day__in=[1, 2]).update(status="ABSENT")  # 50%
+    client.force_login(User.objects.get(username="admin"))
+    body = client.get(f"/reports/subject/{group.pk}/{subject.pk}/").content.decode()
+    assert '<td class="text-danger fw-bold">50.0%</td>' in body
+    assert "<td>100.0%</td>" in body
