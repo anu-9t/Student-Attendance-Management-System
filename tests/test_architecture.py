@@ -74,5 +74,5 @@ def test_only_the_audit_module_writes_audit_entries():
 
 
 def test_templates_are_grouped_by_module():
-    loose = [p.name for p in (ROOT / "templates").glob("*.html") if p.name not in {"base.html", "403.html"}]
+    loose = [p.name for p in (ROOT / "templates").glob("*.html") if p.name not in {"base.html", "403.html", "404.html", "500.html"}]
     assert not loose, f"put page templates in templates/<module>/: {loose}"

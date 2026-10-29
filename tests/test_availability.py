@@ -28,6 +28,7 @@ def test_web_waits_for_the_database_and_nginx_waits_for_web():
     assert re.search(r"web:\s*\n\s*condition: service_healthy", service_block("nginx"))
 
 
+@pytest.mark.django_db  # the health page now asks the database too
 def test_web_health_check_uses_the_health_page(client):
     assert "/health/" in service_block("web")
     assert client.get("/health/").json() == {"status": "ok"}
