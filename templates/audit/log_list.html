@@ -8,7 +8,7 @@
 
 <form method="get" class="d-flex flex-wrap gap-2 mb-3">
     <input type="search" name="q" value="{{ query }}" class="form-control" style="max-width: 280px;" placeholder="Search action, details or user">
-    <select name="outcome" class="form-select" style="max-width: 180px;">
+    <select name="outcome" class="form-select" style="max-width: 180px;" aria-label="Outcome">
         <option value="">All outcomes</option>
         {% for value, label in outcomes %}
         <option value="{{ value }}" {% if value == outcome %}selected{% endif %}>{{ label }}</option>
