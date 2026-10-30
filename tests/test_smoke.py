@@ -4,12 +4,13 @@ import pytest
 from django.core.management import call_command
 from django.db import IntegrityError, transaction
 
+from accounts.models import User
 from attendance.models import Attendance
 from audit.models import AuditLog
 from faculty.models import Faculty
 from notification.models import SystemSetting
 from students.models import Student
-from subjects.models import Subject, TimeSlot
+from subjects.models import Subject, SubjectAssignment, TimeSlot
 
 pytestmark = pytest.mark.django_db
 
@@ -18,6 +19,33 @@ def test_health_endpoint(client):
     response = client.get("/health/")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_faculty_can_view_and_select_only_assigned_pairs(client):
+    call_command("seed_data")
+    faculty_user = User.objects.get(username="faculty1")
+    assignment = SubjectAssignment.objects.get(faculty__user=faculty_user)
+    client.force_login(faculty_user)
+
+    response = client.get("/faculty/assignments/")
+    assert response.status_code == 200
+    assert assignment.class_group.name.encode() in response.content
+    assert assignment.subject.code.encode() in response.content
+
+    response = client.get(
+        "/faculty/assignments/",
+        {"class_id": assignment.class_group_id, "subject_id": assignment.subject_id},
+    )
+    assert response.status_code == 200
+    assert b"Selected:" in response.content
+
+
+def test_faculty_assignment_page_rejects_other_roles(client):
+    call_command("seed_data")
+    admin_user = User.objects.get(username="admin")
+    client.force_login(admin_user)
+
+    assert client.get("/faculty/assignments/").status_code == 403
 
 
 def test_seed_is_repeatable():

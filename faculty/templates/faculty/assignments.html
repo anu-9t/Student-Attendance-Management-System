@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>My class and subject assignments</title>
+</head>
+<body>
+    <main>
+        <h1>Select a class and subject</h1>
+
+        {% if selected_assignment %}
+            <p role="status">
+                Selected: {{ selected_assignment.class_group.name }} —
+                {{ selected_assignment.subject.code }} {{ selected_assignment.subject.name }}
+            </p>
+        {% endif %}
+
+        {% if assignments %}
+            <ul>
+                {% for assignment in assignments %}
+                    <li>
+                        <span>{{ assignment.class_group.name }}</span>
+                        <span>{{ assignment.subject.code }} {{ assignment.subject.name }}</span>
+                        <form method="get" action="{% url 'faculty:assignments' %}">
+                            <input type="hidden" name="class_id" value="{{ assignment.class_group_id }}">
+                            <input type="hidden" name="subject_id" value="{{ assignment.subject_id }}">
+                            <button type="submit">Select</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No class and subject assignments are available.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

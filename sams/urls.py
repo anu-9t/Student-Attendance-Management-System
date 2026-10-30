@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.http import JsonResponse
-from django.urls import path
+from django.urls import include, path
 
 
 def health(request):
@@ -11,5 +11,5 @@ def health(request):
 urlpatterns = [
     path("health/", health),
     path("admin/", admin.site.urls),
-    # Each module adds its own urls.py and includes it here as it is built.
+    path("faculty/", include("faculty.urls")),
 ]
