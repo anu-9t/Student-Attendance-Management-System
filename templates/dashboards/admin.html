@@ -40,6 +40,22 @@
 
     <div class="col-md-4">
         <div class="dashboard-card">
+            <h5>📖 Subject Management</h5>
+            <p>Add and edit subjects and time slots.</p>
+            <a href="{% url 'subjects:list' %}" class="btn btn-primary">Open</a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="dashboard-card">
+            <h5>📚 Subject Assignments</h5>
+            <p>Assign subjects and classes to faculty members.</p>
+            <a href="{% url 'subjects:assignments' %}" class="btn btn-primary">Open</a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="dashboard-card">
             <h5>🛡️ Audit Log</h5>
             <p>See every change, refused page and failed login.</p>
             <a href="{% url 'audit:list' %}" class="btn btn-primary">Open</a>
