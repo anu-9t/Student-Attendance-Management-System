@@ -99,6 +99,10 @@ recovery, data protection) are automated too. CI runs everything on MySQL for ev
 request can only be merged with CI green and a reviewer's approval. Details:
 [test summary](docs/testing/test-summary.md).
 
+System validation of v1.0 against a running server: 32 of 32 cases passed
+([system validation report](docs/reports/system-validation/system-validation-report.md)). How SAMS is looked
+after from here: [maintenance plan](docs/maintenance-plan.md).
+
 ## How we work
 
 - The backlog is on the GitHub Project board (**SAMS Backlog**): one issue per requirement or task, with story
