@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.env
+db.sqlite3
+staticfiles/
+.venv/
+venv/
+.coverage
+coverage.xml
+.pytest_cache/
+.DS_Store
+backups/
