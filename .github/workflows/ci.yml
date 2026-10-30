@@ -1,13 +1,11 @@
 
 name: SAMS CI Pipeline
 
-on:
+'on':
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 permissions:
   contents: read
@@ -16,7 +14,6 @@ jobs:
   repository-check:
     name: Validate repository
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,9 +27,8 @@ jobs:
           echo "Project documentation check passed."
 
   python-quality:
-    name: Tests, coverage and Bandit
+    name: Python tests, coverage and Bandit
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -50,7 +46,7 @@ jobs:
           if [ -f requirements.txt ]; then
             python -m pip install -r requirements.txt
           else
-            echo "requirements.txt is not available yet."
+            echo "requirements.txt is missing; application checks are not ready."
           fi
 
       - name: Run tests with branch coverage
@@ -61,7 +57,7 @@ jobs:
           elif [ -d tests ] && find tests -name 'test_*.py' -print -quit | grep -q .; then
             pytest --cov=. --cov-branch --cov-report=term-missing
           else
-            echo "Tests deferred: Django application and test suite are not ready."
+            echo "Tests deferred: application and test suite are not ready."
           fi
 
       - name: Run Bandit security scan
@@ -69,13 +65,12 @@ jobs:
           if find . -name '*.py' -not -path './.git/*' -not -path './.venv/*' -print -quit | grep -q .; then
             bandit -r . -x .git,.venv
           else
-            echo "Bandit scan deferred: no Python files found."
+            echo "Bandit deferred: no Python files found."
           fi
 
   docker-build:
     name: Build Docker image
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -85,5 +80,5 @@ jobs:
           if [ -f Dockerfile ]; then
             docker build -t sams:ci .
           else
-            echo "Docker build deferred: Dockerfile is not available yet."
+            echo "Docker build deferred: Dockerfile is missing."
           fi
