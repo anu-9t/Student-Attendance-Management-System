@@ -6,5 +6,6 @@ omit =
     manage.py
     sams/wsgi.py
     tests/*
+    tools/*
     venv/*
     .venv/*
