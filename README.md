@@ -57,6 +57,7 @@ Open https://localhost/ (the local certificate is self-signed) and log in as `ad
 | Requirements traceability (status) | — | [docs/testing/rtm.md](docs/testing/rtm.md) |
 | Test summary report (Sprint 2) | — | [docs/testing/test-summary.md](docs/testing/test-summary.md) |
 | Test data | — | [docs/testing/test-data.md](docs/testing/test-data.md) |
+| Unit test report (358 tests) | — | [docs/reports/unit-tests/](docs/reports/unit-tests/unit-test-report.md) |
 | Sprint videos | — | [docs/videos/](docs/videos/) |
 
 Version 1.1 of each document is "updated to reflect the work done in Sprints 1 and 2". The submitted
