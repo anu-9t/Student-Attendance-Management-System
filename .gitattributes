@@ -1,0 +1,4 @@
+# Keep shell scripts and Dockerfiles with Unix line endings, even when checked out on Windows,
+# so nginx/docker-entrypoint.sh still runs inside the container.
+*.sh text eol=lf
+Dockerfile text eol=lf
