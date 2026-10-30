@@ -98,8 +98,8 @@ request can only be merged with CI green and a reviewer's approval. Details:
 
 ## How we work
 
-- The backlog is on the GitHub Project board (**SAMS Backlog**): one issue per requirement or task, with story
-  points, an owner and a sprint milestone.
+- The backlog is on the GitHub Project board (**SAMS Backlog**): one user story per requirement or task, with
+  acceptance criteria, story points, an owner and a sprint milestone ([user stories](docs/user-stories.md)).
 - One branch per issue (`feature/<issue>-<words>`), a pull request with a reviewer from SAD Table 3, CI green,
   then the repository owner merges. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
