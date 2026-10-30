@@ -1,84 +1,68 @@
+name: CI
 
-name: SAMS CI Pipeline
-
-'on':
+on:
+  pull_request:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
-
-permissions:
-  contents: read
 
 jobs:
-  repository-check:
-    name: Validate repository
+  test:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: sams
+          MYSQL_USER: sams
+          MYSQL_PASSWORD: sams
+          MYSQL_ROOT_PASSWORD: root
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DB_HOST: 127.0.0.1
+      DB_NAME: sams
+      DB_USER: root
+      DB_PASSWORD: root
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Check project documentation
-        run: |
-          test -f README.md
-          test -f software-architecture-design-team-3.pdf
-          test -f software-requirements-specification-team-3.pdf
-          test -f test-plan-team-3.pdf
-          echo "Project documentation check passed."
-
-  python-quality:
-    name: Python tests, coverage and Bandit
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
         with:
-          python-version: '3.12'
-
-      - name: Install quality tools
-        run: python -m pip install pytest pytest-cov bandit
-
-      - name: Install project dependencies
+          fetch-depth: 0   # SonarCloud needs the full history
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: System packages for mysqlclient
+        run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev pkg-config
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Unit tests with branch coverage
         run: |
-          if [ -f requirements.txt ]; then
-            python -m pip install -r requirements.txt
-          else
-            echo "requirements.txt is missing; application checks are not ready."
-          fi
+          coverage run -m pytest
+          coverage report
+          coverage xml
+      - name: Bandit security scan
+        run: bandit -r . -x ./tests,./.venv,./venv -ll
+      - name: SonarCloud scan
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: SonarSource/sonarcloud-github-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run tests with branch coverage
-        run: |
-          if [ -f manage.py ]; then
-            python -m pip install django
-            python manage.py test
-          elif [ -d tests ] && find tests -name 'test_*.py' -print -quit | grep -q .; then
-            pytest --cov=. --cov-branch --cov-report=term-missing
-          else
-            echo "Tests deferred: application and test suite are not ready."
-          fi
-
-      - name: Run Bandit security scan
-        run: |
-          if find . -name '*.py' -not -path './.git/*' -not -path './.venv/*' -print -quit | grep -q .; then
-            bandit -r . -x .git,.venv
-          else
-            echo "Bandit deferred: no Python files found."
-          fi
-
-  docker-build:
-    name: Build Docker image
+  docker:
+    needs: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build image when Dockerfile exists
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/sams:latest .
+      - name: Publish to GitHub Container Registry (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
-          if [ -f Dockerfile ]; then
-            docker build -t sams:ci .
-          else
-            echo "Docker build deferred: Dockerfile is missing."
-          fi
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/${{ github.repository_owner }}/sams:latest
