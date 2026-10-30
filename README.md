@@ -58,6 +58,8 @@ Open https://localhost/ (the local certificate is self-signed) and log in as `ad
 | Test summary report (Sprint 2) | — | [docs/testing/test-summary.md](docs/testing/test-summary.md) |
 | Test data | — | [docs/testing/test-data.md](docs/testing/test-data.md) |
 | Unit test report (358 tests) | — | [docs/reports/unit-tests/](docs/reports/unit-tests/unit-test-report.md) |
+| Code coverage report | — | [docs/reports/coverage/code-coverage-report.md](docs/reports/coverage/code-coverage-report.md) |
+| Branch coverage report | — | [docs/reports/coverage/branch-coverage-report.md](docs/reports/coverage/branch-coverage-report.md) |
 | Sprint videos | — | [docs/videos/](docs/videos/) |
 
 Version 1.1 of each document is "updated to reflect the work done in Sprints 1 and 2". The submitted
