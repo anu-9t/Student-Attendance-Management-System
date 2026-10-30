@@ -134,11 +134,13 @@ Dockerfile, docker-compose.yml, requirements*.txt, ruff.toml, sonar-project.prop
 
 Team 3, PES University
 
-| Name | SRN | Role (STP Section 9) |
-|---|---|---|
-| Anmol Vyas | PES2UG24CS072 | Developer |
-| Anupam Rajesh Tiwari | PES2UG24CS073 | Developer, repository owner |
-| Anupriya | PES2UG24CS074 | QA Lead |
-| Anusha G | PES2UG24CS075 | Test Engineer |
+| Name | SRN | Scrum role | Test role (STP Section 9) |
+|---|---|---|---|
+| Anmol Vyas | PES2UG24CS072 | Scrum Master, Development Team | Developer |
+| Anupam Rajesh Tiwari | PES2UG24CS073 | Product Owner, Development Team | Developer, repository owner |
+| Anupriya | PES2UG24CS074 | Development Team | QA Lead |
+| Anusha G | PES2UG24CS075 | Development Team | Test Engineer |
+
+How the team ran its sprints (roles, events, estimation, velocity, blockers): [docs/agile-process.md](docs/agile-process.md).
 
 Academic coursework project (UE24CS341A, PES University).
