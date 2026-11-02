@@ -18,6 +18,15 @@ def test_admin_dashboard(client):
 
     assert response.status_code == 200
     assert b"Administrator Dashboard" in response.content
+    for url_name in (
+        "students:list",
+        "faculty:list",
+        "subjects:list",
+        "notification:threshold",
+        "audit:list",
+        "reports:index",
+    ):
+        assert reverse(url_name).encode() in response.content
 
 
 @pytest.mark.django_db
@@ -34,6 +43,8 @@ def test_faculty_dashboard(client):
 
     assert response.status_code == 200
     assert b"Faculty Dashboard" in response.content
+    assert reverse("attendance:select").encode() in response.content
+    assert reverse("reports:index").encode() in response.content
 
 
 @pytest.mark.django_db
@@ -50,6 +61,8 @@ def test_student_dashboard(client):
 
     assert response.status_code == 200
     assert b"Student Dashboard" in response.content
+    assert reverse("calculation:mine").encode() in response.content
+    assert reverse("history:mine").encode() in response.content
 
 
 @pytest.mark.django_db

@@ -1,0 +1,1018 @@
+PES UNIVERSITY, BANGALORE
+Department of Computer Science and Engineering
+UE24CS341A — Software Engineering
+Software Requirements Specification
+for
+Student Attendance Management System
+Version 1.0 (Pending Approval)
+Prepared by Team 3
+Anmol Vyas (PES2UG24CS072)
+Anupam Rajesh Tiwari (PES2UG24CS073)
+Anupriya (PES2UG24CS074)
+Anusha G (PES2UG24CS075)
+PES University, Bengaluru
+03-09-2026
+
+Page 2
+Revision History
+Version Date Author Change Summary Approval
+1.0 03-09-2026 Team 3
+Initial SRS document 
+with system 
+requirements, use-case 
+diagrams, and RTM
+Pending
+Approvals
+Role Name Signature / Email Date
+Course Coordinator
+
+Page 3
+Table of Contents
+1. Introduction........................................................................................................................................4
+1.1 Purpose........................................................................................................................................................4
+1.2 Scope............................................................................................................................................................4
+1.3 Intended Audience.......................................................................................................................................4
+1.4 Definitions and Acronyms............................................................................................................................5
+1.5 References....................................................................................................................................................6
+2. Overall Description..............................................................................................................................6
+2.1 Product Perspective.....................................................................................................................................6
+2.2 Product Functions........................................................................................................................................6
+2.3 User Classes and Characteristics..................................................................................................................6
+2.4 Operating Environment................................................................................................................................7
+2.5 Design and Implementation Constraints.....................................................................................................7
+2.6 Assumptions and Dependencies..................................................................................................................7
+3. External Interface Requirements.........................................................................................................8
+3.1 User Interfaces.............................................................................................................................................8
+3.2 Hardware Interfaces.....................................................................................................................................8
+3.3 Software Interfaces......................................................................................................................................8
+3.4 Communications Interfaces.........................................................................................................................8
+4. System Features (Detailed)..................................................................................................................9
+4.1 User Authentication.....................................................................................................................................9
+4.2 Student Management..................................................................................................................................9
+4.3 Faculty and Subject Management.............................................................................................................10
+4.4 Attendance Recording................................................................................................................................10
+4.5 Attendance Monitoring and Modification.................................................................................................11
+4.6 Attendance Reports...................................................................................................................................12
+5. Non-Functional Requirements (Detailed)...........................................................................................13
+5.1 Security.......................................................................................................................................................13
+5.1.1 Security Objectives...........................................................................................................................13
+5.1.2 Security Requirements.....................................................................................................................13
+6. Quality Attributes & Acceptance Tests...............................................................................................15
+6.1 Quality Attributes.......................................................................................................................................15
+6.2 Acceptance Criteria....................................................................................................................................15
+6.3 Acceptance Test Cases...............................................................................................................................15
+7. System Models and Diagrams............................................................................................................16
+7.1 Actors.........................................................................................................................................................16
+7.2 Use Cases....................................................................................................................................................16
+7.3 Use-Case Diagram......................................................................................................................................17
+7.4 Use-Case Descriptions................................................................................................................................18
+8. Requirements Traceability Matrix (RTM)...........................................................................................20
+9. Conclusion.........................................................................................................................................21
+
+Page 4
+1. Introduction
+1.1 Purpose
+This document is the Software Requirements Specification (SRS) for the Student Attendance Management System 
+(SAMS), developed by Team 3 as part of the UE24CS341A Software Engineering mini-project. It defines the functional 
+and non-functional requirements, system interfaces, features, quality attributes, and verification criteria of the 
+system. The document serves as the reference baseline for developers, faculty members, administrators, students, 
+and project evaluators through the requirements, design, implementation, and testing phases of the project.
+1.2 Scope
+The Student Attendance Management System automates the recording, management, monitoring, and reporting of 
+student attendance, replacing manual attendance registers with a centralized digital platform. Faculty members mark 
+attendance for their assigned classes, students view their own attendance records, and administrators manage 
+students, faculty, subjects, and system-wide attendance data.
+Core capabilities include user authentication with role-based access, attendance recording and correction, automatic 
+attendance-percentage calculation, attendance history and reporting, and low-attendance alerts.
+Out of scope: payroll management, examination evaluation, fee management, and any other non-academic 
+administrative activity not directly related to attendance tracking.
+1.3 Intended Audience
+• Developers, who need to understand and implement the system requirements.
+• Faculty members, who will record and monitor student attendance.
+• Students, who will view their attendance status and history.
+• Administrators, who manage users, subjects, classes, and system data.
+• QA/test engineers, who verify and validate system functionality against this SRS.
+• Project guides and evaluators, who assess requirement coverage and implementation quality.
+The remainder of this document is organized following the standard SRS structure: overall system description, 
+external interfaces, detailed functional and non-functional requirements, quality attributes, use-case diagrams, and 
+the requirements traceability matrix.
+1.4 Definitions and Acronyms
+Term / Acronym Definition
+SRS Software Requirements Specification
+SAM Student Attendance Management
+UI User Interface
+API Application Programming Interface
+DB Database
+Admin System Administrator
+Faculty Teacher responsible for marking attendance
+Student User whose attendance is recorded
+
+Page 5
+Term / Acronym Definition
+Attendance Record indicating whether a student was present or absent
+CRUD Create, Read, Update, Delete
+ID Identification Number
+Authentication Process of verifying the identity of a user
+Authorization Process of determining what a user is permitted to access
+1.5 References
+• IEEE/software engineering SRS guidelines, as adapted in the Mini-Project SRS template (PES University, Dept. of 
+CSE).
+• UML modelling standards for use-case diagrams.
+• Django Software Foundation, "Django Documentation", https://docs.djangoproject.com/
+• Oracle Corporation, "MySQL 8.0 Reference Manual", https://dev.mysql.com/doc/
+• Institutional attendance rules and academic requirements (as communicated by the course coordinator).
+
+Page 6
+2. Overall Description
+2.1 Product Perspective
+The Student Attendance Management System (SAMS) is a new, self-contained web-based application; it is not a 
+follow-on to an existing institutional system. It replaces manual, register-based attendance tracking with a centralized 
+system comprising a browser-based user interface, an application server, and a relational database.
+The system uses Python with the Django web framework for the application layer and MySQL for relational 
+persistence. Django was selected for its built-in authentication module, role-based authorization support, and ORM 
+capabilities, which streamline entity mapping for students, faculty, courses, and attendance records. MySQL provides 
+standard relational integrity, acid-compliant transactions, and native foreign-key constraints to prevent data 
+duplication.
+Faculty members record attendance for their assigned subjects, students view their own attendance status, and 
+administrators manage students, faculty, subjects, classes, and attendance records. A high-level view of the major 
+components and their interconnections is provided as a structural note: the browser-based client communicates over 
+HTTPS with the Django application server, which in turn performs all reads and writes against the MySQL database; no 
+other external system integration is required for the current scope.
+2.2 Product Functions
+The major functions of the system, summarized at a high level (details are in Section 4), are:
+• User Authentication: secure login with role-based access for Admin, Faculty, and Student.
+• Student Management: add, update, search, and view student records.
+• Faculty and Subject Management: maintain faculty profiles, create subjects, and assign subjects to faculty.
+• Attendance Recording: mark students Present/Absent per class and subject, with duplicate-entry prevention.
+• Attendance Modification: authorized correction of previously recorded attendance.
+• Attendance Monitoring: automatic percentage calculation and history viewing.
+• Attendance Reports: student-wise, subject-wise, and class-wise reports, downloadable/printable.
+• Low-Attendance Alerts: automatic warnings when a student's attendance falls below the configured threshold.
+• Dashboards: role-specific dashboards for Admin, Faculty, and Student.
+2.3 User Classes and Characteristics
+Student
+• Logs in using valid credentials issued by the institution.
+• Views personal attendance records, subject-wise percentage, and history.
+• Receives low-attendance warnings.
+• Requires only basic computer or smartphone familiarity; this is the most frequent but least privileged user class.
+Faculty
+• Logs in securely and views assigned classes and subjects.
+• Marks and corrects attendance, and generates attendance reports for their subjects.
+• Requires basic familiarity with the institution's attendance process; moderate frequency of use, moderate 
+privilege.
+
+Page 7
+Administrator
+• Has full administrative access: manages student and faculty accounts, departments, classes, and subjects.
+• Assigns subjects to faculty and views consolidated, institution-wide attendance reports.
+• Least frequent user class but highest privilege level; most important for data integrity and system configuration.
+2.4 Operating Environment
+• Client: desktop, laptop, tablet, or smartphone with a modern web browser (Chrome, Edge, Firefox).
+• Frontend: HTML, CSS, JavaScript, with Bootstrap for responsive layout.
+• Backend: Python 3 with the Django web framework.
+• Database: MySQL (relational).
+• Server operating system: Linux (Ubuntu), compatible with Windows/macOS for local development.
+• Network: institutional LAN or the internet, secured with HTTPS.
+2.5 Design and Implementation Constraints
+• The backend framework and database are fixed as Django and MySQL for this project (Section 2.1); no alternate 
+stack will be introduced mid-project.
+• Only authenticated users may access protected system functions, and access must match the user's assigned 
+role.
+• Only authorized faculty or administrators may modify attendance records once submitted.
+• Passwords must be stored using a one-way hashing algorithm (Django's default PBKDF2/Argon2 password 
+hasher); plaintext storage is prohibited.
+• Regular database backups must be scheduled to prevent loss of attendance records.
+• The system must follow the attendance rules and policies defined by the institution (e.g., minimum attendance 
+percentage thresholds).
+2.6 Assumptions and Dependencies
+• It is assumed that all students and faculty are issued institutional credentials prior to system rollout; the system 
+does not perform its own identity verification against external ID documents.
+• The system depends on continuous availability of the MySQL database and the underlying network for normal 
+operation; extended outages will degrade functionality.
+• It is assumed that class timetables and subject-to-semester mappings are supplied by the administrator and are 
+accurate at the time attendance is recorded.
+• The project depends on Django's built-in authentication and ORM libraries, which are assumed to remain stable 
+for the duration of development.
+
+Page 8
+3. External Interface Requirements
+3.1 User Interfaces
+The system provides a simple, role-aware web interface:
+• A single login page shared by students, faculty, and administrators, differentiated by role after authentication.
+• A role-specific dashboard shown immediately after login (Section 2.2).
+• Forms for entering and updating student, faculty, subject, and attendance details, with inline validation.
+• An attendance-marking interface presenting each enrolled student with a Present/Absent toggle.
+• Attendance-percentage and report views with clear tabular layouts.
+• Consistent navigation menus, clear primary-action buttons, and legible error messages.
+• A responsive layout usable on desktop, tablet, and smartphone screens.
+3.2 Hardware Interfaces
+The system requires no specialized hardware and runs on standard computing devices.
+• Keyboard and mouse, or touchscreen, for data entry and navigation.
+• A standard display for viewing the application.
+• A printer, optionally, for physical copies of attendance reports.
+• Standard server hardware (or a cloud virtual machine) to host the Django application and MySQL database.
+3.3 Software Interfaces
+• Database: MySQL, accessed through the Django ORM, for storing student, faculty, subject, and attendance data.
+• Backend framework: Django (Python 3), handling request routing, business logic, and template rendering.
+• Web browser: Google Chrome, Microsoft Edge, or Mozilla Firefox (current stable releases).
+• Authentication module: Django's built-in authentication system, extended with role-based permission checks for 
+Admin, Faculty, and Student.
+• Reporting module: a Django-based reporting component that queries attendance data and renders it as on-
+screen tables and downloadable/printable documents.
+3.4 Communications Interfaces
+• All communication between the browser, application server, and database occurs over the institutional network 
+or the internet.
+• HTTPS (TLS) is used to protect all data transmitted between the client and the server.
+• The system displays clear, user-facing error messages when the network or server is unavailable, rather than 
+failing silently.
+• Database connections are restricted to the application server and secured to prevent unauthorized direct 
+access.
+
+Page 9
+4. System Features (Detailed)
+Each functional requirement below includes an acceptance criterion and a reference test case. Requirement IDs 
+follow the pattern SAM-F-###. A total of 20 functional requirements are specified across six functional domains.
+4.1 User Authentication
+Description: The system shall authenticate students, faculty members, and administrators before granting access, and 
+shall enforce role-based access thereafter.
+Req ID Requirement Type Priority Source / 
+Stakeholder
+Acceptance 
+Criteria / Test 
+Case Ref
+Comments / 
+Dependencies
+SAM-F-001
+The system shall 
+allow users to 
+log in using a 
+valid username 
+and password.
+Functional High All Users
+Valid credentials 
+shall provide 
+access. Test: TC-
+Auth-01
+Requires user 
+database
+SAM-F-002
+The system shall 
+display an 
+appropriate 
+error message 
+when invalid 
+login credentials 
+are entered.
+Functional High Security
+Invalid 
+credentials shall 
+be rejected. 
+Test: TC-
+Auth-02
+Depends on 
+authentication 
+module
+SAM-F-003
+The system shall 
+provide role-
+based access for 
+Admin, Faculty, 
+and Student 
+users.
+Functional High Administrator
+Users shall 
+access only 
+features 
+permitted for 
+their role. Test: 
+TC-Auth-03
+Requires role 
+management
+4.2 Student Management
+Description: The system shall allow administrators to maintain student information.
+Req ID Requirement Type Priority Source / 
+Stakeholder
+Acceptance 
+Criteria / Test 
+Case Ref
+Comments / 
+Dependencies
+SAM-F-004
+The system shall 
+allow the 
+administrator to 
+add new 
+student details.
+Functional High Administrator
+New student 
+shall be 
+successfully 
+stored. Test: TC-
+Student-01
+Requires 
+database
+SAM-F-005
+The system shall 
+allow the 
+administrator to 
+update student 
+information.
+Functional High Administrator
+Modified details 
+shall be saved 
+correctly. Test: 
+TC-Student-02
+Admin 
+authorization 
+required
+SAM-F-006
+The system shall 
+allow the 
+administrator to 
+search and view 
+Functional Medium Administrator/
+Faculty
+Correct student 
+information 
+shall be 
+displayed. Test: 
+Search by 
+student 
+ID/name
+
+Page 10
+Req ID Requirement Type Priority Source / 
+Stakeholder
+Acceptance 
+Criteria / Test 
+Case Ref
+Comments / 
+Dependencies
+student details. TC-Student-03
+4.3 Faculty and Subject Management
+Description: The system shall allow the administrator to manage faculty members, subjects, and class assignments.
+Req ID Requirement Type Priority Source / 
+Stakeholder
+Acceptance 
+Criteria / Test 
+Case Ref
+Comments / 
+Dependencies
+SAM-F-007
+The system shall 
+allow the 
+administrator to 
+add and 
+manage faculty 
+details.
+Functional High Administrator
+Faculty 
+information 
+shall be stored 
+and displayed 
+correctly. Test: 
+TC-Faculty-01
+Requires 
+database
+SAM-F-008
+The system shall 
+allow the 
+administrator to 
+create and 
+manage 
+subjects.
+Functional High Administrator
+Subject details 
+shall be 
+successfully 
+added or 
+updated. Test: 
+TC-Subject-01
+Requires subject 
+database
+SAM-F-009
+The system shall 
+allow the 
+administrator to 
+assign subjects 
+to faculty 
+members.
+Functional High Administrator
+Assigned 
+subject shall 
+appear on the 
+faculty 
+dashboard. 
+Test: TC-
+Subject-02
+Faculty account 
+required
+4.4 Attendance Recording
+Description: Faculty members shall be able to record attendance for students belonging to their assigned classes.
+Req ID Requirement Type Priority Source / 
+Stakeholder
+Acceptance 
+Criteria / Test 
+Case Ref
+Comments / 
+Dependencies
+SAM-F-010
+The system shall 
+allow faculty 
+members to 
+select a class 
+and subject 
+before marking 
+attendance.
+Functional High Faculty
+Correct class 
+and subject 
+shall be 
+displayed. Test: 
+TC-Att-01
+Requires 
+class/subject 
+data
+SAM-F-011
+The system shall 
+allow faculty 
+members to 
+mark each 
+student as 
+Present or 
+Absent.
+Functional High Faculty
+Attendance 
+status shall be 
+stored correctly. 
+Test: TC-Att-02
+Requires 
+student list
+
+Page 11
+Req ID Requirement Type Priority Source / 
+Stakeholder
+Acceptance 
+Criteria / Test 
+Case Ref
+Comments / 
+Dependencies
+SAM-F-012
+The system shall 
+store 
+attendance with 
+student ID, 
+subject, date, 
+and attendance 
+status.
+Functional High Faculty/
+Administrator
+Database record 
+shall contain all 
+required fields. 
+Test: TC-Att-03
+Requires 
+database
+SAM-F-013
+The system shall 
+prevent 
+duplicate 
+attendance 
+records for the 
+same student, 
+subject, and 
+date.
+Functional Medium System
+Duplicate 
+record shall be 
+rejected. Test: 
+TC-Att-04
+Requires 
+database 
+constraint
+4.5 Attendance Monitoring and Modification
+Req ID Requirement Type Priority Source / 
+Stakeholder
+Acceptance 
+Criteria / Test 
+Case Ref
+Comments / 
+Dependencies
+SAM-F-014
+The system shall 
+allow 
+authorized 
+faculty 
+members to 
+modify an 
+attendance 
+record.
+Functional High Faculty
+Authorized 
+changes shall be 
+saved 
+successfully. 
+Test: TC-Att-05
+Authorization 
+required
+SAM-F-015
+The system shall 
+calculate the 
+attendance 
+percentage for 
+each student 
+and subject.
+Functional Medium Student/Faculty
+Percentage shall 
+be calculated 
+correctly. Test: 
+TC-Calc-01
+Based on 
+attendance 
+records
+SAM-F-016
+The system shall 
+allow students 
+to view their 
+attendance 
+history.
+Functional High Student
+Student shall 
+see only their 
+own 
+attendance. 
+Test: TC-
+View-01
+Authentication 
+required
+SAM-F-017
+The system shall 
+display a 
+warning when a 
+student's 
+attendance falls 
+below the 
+required 
+percentage.
+Functional Medium Student/Faculty
+Low-attendance 
+student shall 
+receive a 
+warning. Test: 
+TC-Alert-01
+Attendance 
+threshold 
+configurable
+
+Page 12
+4.6 Attendance Reports
+Req ID Requirement Type Priority Source / 
+Stakeholder
+Acceptance 
+Criteria / Test 
+Case Ref
+Comments / 
+Dependencies
+SAM-F-018
+The system shall 
+generate 
+student-wise 
+attendance 
+reports.
+Functional High Faculty/Admin
+Report shall 
+display correct 
+attendance 
+details. Test: TC-
+Report-01
+Requires 
+attendance data
+SAM-F-019
+The system shall 
+generate 
+subject-wise 
+and class-wise 
+attendance 
+reports.
+Functional High Faculty/Admin
+Selected 
+subject/class 
+report shall be 
+generated. Test: 
+TC-Report-02
+Requires 
+reporting 
+module
+SAM-F-020
+The system shall 
+allow 
+authorized 
+users to 
+download or 
+print 
+attendance 
+reports.
+Functional Medium Faculty/Admin
+Report shall be 
+available in 
+printable/downl
+oadable format. 
+Test: TC-
+Report-03
+Requires report 
+generation
+Total Functional Requirements: 20
+
+Page 13
+5. Non-Functional Requirements (Detailed)
+IDs follow the pattern SAM-NF-###. The following non-functional requirements define the performance, reliability, 
+usability, and maintainability criteria for the system.
+Req ID Requirement Category Priority Acceptance Criteria / 
+Measurement
+SAM-NF-001
+The system shall display 
+normal user requests 
+within 3 seconds under 
+normal load.
+Performance High
+90% of requests 
+complete within 3 
+seconds. Test: TC-
+Perf-01
+SAM-NF-002
+The system shall 
+provide at least 99% 
+availability during 
+academic working 
+hours.
+Reliability High
+Monthly availability 
+report shall meet the 
+target. Test: TC-
+Reliability-01
+SAM-NF-003
+The system shall 
+provide a simple and 
+user-friendly interface 
+for students, faculty, 
+and administrators.
+Usability High
+Representative users 
+shall complete common 
+tasks without 
+assistance. Test: TC-
+UX-01
+SAM-NF-004
+The system shall 
+protect stored 
+attendance and user 
+information from 
+unauthorized access.
+Security High
+Unauthorized access 
+attempts shall be 
+denied. Test: TC-Sec-01
+SAM-NF-005
+The system shall 
+support regular 
+database backup and 
+recovery of attendance 
+records.
+Reliability High
+Backup and restoration 
+shall successfully 
+recover test data. Test: 
+TC-Recovery-01
+SAM-NF-006
+The system shall be 
+maintainable so that 
+new features can be 
+added without major 
+changes to existing 
+modules.
+Maintainability Medium
+New module 
+integration shall not 
+break existing 
+functions. Test: TC-
+Maint-01
+SAM-NF-007
+The system shall 
+support multiple users 
+accessing the system 
+simultaneously without 
+significant performance 
+degradation.
+Scalability Medium
+Load testing shall meet 
+defined response-time 
+limits. Test: TC-Load-01
+Total Non-Functional Requirements: 7
+5.1 Security
+5.1.1 Security Objectives
+The Student Attendance Management System shall satisfy the following security objectives:
+SO-01: Confidentiality. The system shall ensure that student personal information, login credentials, and attendance 
+records are accessible only to authorized users.
+
+Page 14
+SO-02: Integrity. The system shall ensure that attendance records cannot be modified, deleted, or manipulated by 
+unauthorized users, and that stored attendance information remains accurate.
+5.1.2 Security Requirements
+Req ID Security Requirement Priority Acceptance Criteria / Test
+SAM-SEC-001
+The system shall require 
+authentication before 
+allowing access to protected 
+features.
+High
+Unauthenticated users shall 
+be redirected to the login 
+page. Test: TC-SEC-01
+SAM-SEC-002
+The system shall implement 
+role-based access control for 
+Admin, Faculty, and Student 
+users.
+High
+Users cannot access functions 
+outside their assigned role. 
+Test: TC-SEC-02
+SAM-SEC-003
+Passwords shall be stored 
+securely using a one-way 
+password hashing mechanism 
+and shall never be stored as 
+plain text.
+High
+Database inspection shall 
+confirm passwords are 
+hashed. Test: TC-SEC-03
+SAM-SEC-004
+The system shall prevent 
+students from viewing or 
+modifying another student's 
+attendance records.
+High
+Attempted unauthorized 
+access shall be rejected. Test: 
+TC-SEC-04
+SAM-SEC-005
+The system shall record 
+important attendance 
+modifications and 
+administrative actions in an 
+audit log.
+Medium
+Changes shall include user, 
+action, and timestamp. Test: 
+TC-SEC-05
+Total Security Requirements: 5
+
+Page 15
+6. Quality Attributes & Acceptance Tests
+6.1 Quality Attributes
+The Student Attendance Management System shall exhibit the following quality attributes:
+• Usability: the system shall be simple and easy to use for students, faculty, and administrators.
+• Performance: the system shall respond quickly to user requests (Section 5, SAM-NF-001).
+• Reliability: attendance records shall be stored accurately without data loss.
+• Security: only authorized users shall be able to access or modify attendance information.
+• Maintainability: the system shall be easy to update and extend as new features are required.
+• Scalability: the system shall support an increasing number of students and attendance records without 
+significant degradation.
+6.2 Acceptance Criteria
+A build is considered acceptance-ready when: all High-priority functional requirements (Section 4) are implemented 
+and pass their reference test cases; no critical non-functional requirement (Section 5) fails; all five security 
+requirements (Section 5.1.2) pass; and the Requirements Traceability Matrix (Section 8) shows every requirement 
+mapped to a design module and test case with no unresolved gaps.
+6.3 Acceptance Test Cases
+The following test suites shall be used to verify the system prior to final submission:
+Test Suite Purpose
+Authentication Test Verify login, logout, and role-based access.
+Student Management Test Verify adding, updating, searching, and viewing students.
+Attendance Test Verify marking, updating, and storing attendance.
+Attendance Calculation Test Verify correct attendance percentage calculation.
+Report Test Verify generation and downloading of attendance reports.
+Performance Test Verify that the system responds within the specified time.
+Security Test Verify authentication, authorization, password protection, and 
+data access controls.
+
+Page 16
+7. System Models and Diagrams
+7.1 Actors
+The Student Attendance Management System defines the following actors:
+• Student: a user who views their own attendance records, percentage, and history.
+• Faculty: a user who records and modifies attendance for their assigned classes and subjects, and generates 
+reports.
+• Administrator: a user who manages student, faculty, and subject data, assigns subjects to faculty, configures the 
+attendance threshold, and views consolidated reports.
+• Audit Module: a system-internal actor that receives and stores the log of sensitive administrative actions 
+(Section 5.1.2, SAM-SEC-005).
+7.2 Use Cases
+The primary use cases, grouped by actor, are summarized below and shown in the two use-case diagrams that follow 
+(Section 7.3). Several use cases include a shared sub-use-case, shown as a separate oval connected by an «include» 
+relationship: for example, Log In / Authenticate includes both Authenticate Credentials and Validate User Role, and 
+Mark Attendance includes Select Class and Subject and Save Attendance Record.
+• Student: Log In / Authenticate, View Attendance History, View Attendance Percentage, Receive Low-Attendance 
+Alert.
+• Faculty: Log In / Authenticate, View Assigned Subjects, Select Class and Subject, Mark Attendance, Modify 
+Attendance Record, Generate Reports.
+• Administrator: Manage Student Records, Manage Faculty Records, Manage Subjects and Classes, Assign Subjects 
+to Faculty, Manage User Access, View Consolidated Attendance Reports, Configure Attendance Threshold, 
+Manage Database Backup.
+
+Page 17
+7.3 Use-Case Diagram
+7.3.1 Student and Faculty Use Cases
+The diagram below shows the Student and Faculty actors and their associated use cases. Login is shared by both 
+actors and includes two sub-use-cases (Authenticate Credentials and Validate User Role); marking attendance 
+includes selecting a class and subject beforehand and saving the resulting record; viewing attendance percentage 
+includes the underlying percentage calculation; and generating reports includes selecting the report type and date 
+range.
+
+
+Page 18
+7.3.2 Administrator Use Cases
+The diagram below shows the Administrator actor and the administrative use cases. Record-modifying and access-
+control actions (Manage Student Records, Assign Subjects to Faculty, Manage User Access, and Configure Attendance 
+Threshold) each include Log Administrative Action, which writes to the Audit Module, in line with SAM-SEC-005; the 
+same relationship applies to Manage Database Backup.
+7.4 Use-Case Descriptions
+UC-01: Mark Attendance
+Actor: Faculty. Precondition: Faculty is authenticated and has at least one assigned class/subject. Main flow: (1) 
+Faculty selects class and subject (includes UC-02); (2) system displays the enrolled student list; (3) Faculty marks each 
+student Present or Absent; (4) system stores the record with student ID, subject, date, and status, rejecting duplicates 
+for the same student/subject/date (SAM-F-013). Postcondition: attendance for the session is recorded and available 
+for percentage calculation.
+UC-02: Select Class and Subject
+Actor: Faculty. Included by UC-01. Main flow: Faculty selects one of their assigned classes and subjects from a list 
+scoped to their account; the system validates the selection before proceeding.
+UC-03: View Attendance Percentage
+Actor: Student. Precondition: Student is authenticated. Main flow: Student requests their attendance summary; the 
+system calculates the percentage per subject from stored records (SAM-F-015) and displays it, along with a low-
+attendance warning if the percentage is below the configured threshold (SAM-F-017).
+
+Page 19
+UC-04: Manage User Access
+Actor: Administrator. Main flow: Administrator creates, updates, or deactivates a student or faculty account and 
+assigns its role. This action includes UC-05 (Log Administrative Action) so that the change is auditable.
+UC-05: Log Administrative Action
+Actor: Audit Module (system). Triggered by: UC-04 and other record-modifying or access-control administrator 
+actions (Manage Student Records, Assign Subjects to Faculty, Configure Attendance Threshold, Manage Database 
+Backup). Main flow: the system records the acting user, the action taken, and a timestamp to the audit log (SAM-
+SEC-005).
+UC-06: Generate Reports
+Actor: Faculty or Administrator. Precondition: user is authenticated and has report-viewing permission for the 
+requested scope. Main flow: user selects the report type (student-wise, subject-wise, or class-wise) and a date range 
+(includes Select Report Type and Range); the system compiles the report from stored attendance records (SAM-F-018 
+to SAM-F-020) and returns it in an on-screen, printable, or downloadable format.
+UC-07: View Attendance History
+Actor: Student or Faculty. Precondition: user is authenticated. Main flow: user requests attendance history for a 
+subject or class; the system retrieves matching records and displays them chronologically. Students see only their 
+own records (SAM-SEC-004); faculty see records for classes they are assigned to.
+
+Page 20
+8. Requirements Traceability Matrix (RTM)
+The following RTM maps every requirement of the Student Attendance Management System to its SRS section, design 
+module, and corresponding test case. Status: N = Not Tested, P = Pass, A = Approved. All requirements are currently 
+marked N because testing will be performed during and after implementation; status will be updated to P after 
+successful verification and A after final review.
+Req ID Requirement 
+(Short)
+Section Ref / 
+Design Spec Module Test Case(s) Status Comments
+SAM-F-001 User login 4.1 / DS-Auth-01 Authentication 
+Module TC-Auth-01 N —
+SAM-F-002 Invalid login 
+handling 4.1 / DS-Auth-02 Authentication 
+Module TC-Auth-02 N —
+SAM-F-003 Role-based access 4.1 / DS-Auth-03 Authentication 
+Module TC-Auth-03 N —
+SAM-F-004 Add student 4.2 / DS-
+Student-01 Student Module TC-Student-01 N —
+SAM-F-005 Update student 4.2 / DS-
+Student-02 Student Module TC-Student-02 N —
+SAM-F-006 Search student 4.2 / DS-
+Student-03 Student Module TC-Student-03 N —
+SAM-F-007 Manage faculty 4.3 / DS-
+Faculty-01 Faculty Module TC-Faculty-01 N —
+SAM-F-008 Manage subjects 4.3 / DS-
+Subject-01 Subject Module TC-Subject-01 N —
+SAM-F-009 Assign subject to 
+faculty
+4.3 / DS-
+Subject-02 Subject Module TC-Subject-02 N —
+SAM-F-010 Select class and 
+subject
+4.4 / DS-
+Attendance-01
+Attendance 
+Module TC-Att-01 N —
+SAM-F-011 Mark attendance 4.4 / DS-
+Attendance-02
+Attendance 
+Module TC-Att-02 N —
+SAM-F-012 Store attendance 
+record
+4.4 / DS-
+Attendance-03
+Attendance 
+Module TC-Att-03 N —
+SAM-F-013 Prevent duplicate 
+attendance
+4.4 / DS-
+Attendance-04
+Attendance 
+Module TC-Att-04 N Database 
+constraint
+SAM-F-014 Modify 
+attendance
+4.5 / DS-
+Attendance-05
+Attendance 
+Module TC-Att-05 N Authorized users 
+only
+SAM-F-015
+Calculate 
+attendance 
+percentage
+4.5 / DS-Calc-01 Calculation 
+Module TC-Calc-01 N —
+SAM-F-016 View attendance 
+history 4.5 / DS-View-01 Student Module TC-View-01 N —
+SAM-F-017 Low-attendance 
+warning 4.5 / DS-Alert-01 Notification 
+Module TC-Alert-01 N Threshold 
+configurable
+SAM-F-018 Student-wise 
+report
+4.6 / DS-
+Report-01 Report Module TC-Report-01 N —
+SAM-F-019 Subject/class 
+report
+4.6 / DS-
+Report-02 Report Module TC-Report-02 N —
+SAM-F-020 Download/print 
+report
+4.6 / DS-
+Report-03 Report Module TC-Report-03 N —
+
+Page 21
+Req ID Requirement 
+(Short)
+Section Ref / 
+Design Spec Module Test Case(s) Status Comments
+SAM-NF-001 Response time ≤ 3 
+seconds 5 / DS-Perf-01 Web/Application 
+Module TC-Perf-01 N Performance 
+testing required
+SAM-NF-002 99% availability 5 / DS-
+Reliability-01 System Module TC-Reliability-01 N —
+SAM-NF-003 User-friendly 
+interface 5 / DS-UI-01 User Interface TC-UX-01 N —
+SAM-NF-004 Data protection 5 / DS-Security-01 Security Module TC-Sec-01 N —
+SAM-NF-005 Database backup 
+and recovery
+5 / DS-
+Recovery-01 Database Module TC-Recovery-01 N —
+SAM-NF-006 Maintainability 5 / DS-Maint-01 Application 
+Module TC-Maint-01 N —
+SAM-NF-007 Multiple-user 
+support 5 / DS-Scale-01 Application 
+Module TC-Load-01 N Load testing 
+required
+SAM-SEC-001 Authentication 
+required
+5.1.2 / DS-
+Security-01 Security Module TC-SEC-01 N —
+SAM-SEC-002 Role-based 
+authorization
+5.1.2 / DS-
+Security-02 Security Module TC-SEC-02 N —
+SAM-SEC-003 Secure password 
+storage
+5.1.2 / DS-
+Security-03
+Authentication 
+Module TC-SEC-03 N Passwords must 
+be hashed
+SAM-SEC-004 Protect student 
+attendance data
+5.1.2 / DS-
+Security-04
+Access Control 
+Module TC-SEC-04 N —
+SAM-SEC-005 Audit important 
+actions
+5.1.2 / DS-
+Security-05 Audit Module TC-SEC-05 N Timestamp 
+required
+9. Conclusion
+This document has specified the functional requirements (20, Section 4), non-functional requirements (7, Section 5), 
+security objectives and requirements (2 and 5 respectively, Section 5.1), quality attributes and acceptance criteria 
+(Section 6), use-case models (Section 7), and full requirements traceability (Section 8) for the Student Attendance 
+Management System.
+The team has committed to a Python/Django backend with a MySQL database (Section 2.1). The requirement set 
+establishes a three-role access architecture (Student, Faculty, and Administrator) with attendance recording, 
+calculation, and reporting as core functionalities. This SRS forms the baseline against which the subsequent project 
+plan, test plan, and implementation deliverables will be developed and verified.
+Team 3: Anmol Vyas, Anupam Rajesh Tiwari, Anupriya, Anusha G.
